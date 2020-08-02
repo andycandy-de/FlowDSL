@@ -1,43 +1,49 @@
-package de.andycandy.flow.plugin.io
+ package de.andycandy.flow.plugin.io
 
-import de.andycandy.flow.FlowDSL
 import de.andycandy.flow.FlowPlugin
-import de.andycandy.flow.task.StepTask
+import de.andycandy.flow.plugin.io.ls.LSTask
+import de.andycandy.flow.plugin.io.ls.LSTaskDelegate
+import de.andycandy.flow.plugin.io.read.ReadTask
+import de.andycandy.flow.plugin.io.write.WriteTask
+import de.andycandy.flow.task.flow.FlowTask
 
-class IOPlugin implements FlowPlugin {
+class IOPlugin implements FlowPlugin, IOPluginDelegate {
+
+	FlowTask flowTask
 	
-	StepTask stepTask
-	
-	void ls(Closure closure) {
+	@Override
+	public void ls(Closure closure) {
 		
 		LSTask lsTask = new LSTask()
 		lsTask.closure = closure
-		stepTask.tasks << lsTask
-	}
-	
-	void write(Closure closure) {
 		
-		WriteFileTask writeFileTask = new WriteFileTask()
-		writeFileTask.closure = closure
-		stepTask.tasks << writeFileTask
+		flowTask.executeTask(lsTask)
 	}
 	
-	void read(Closure closure) {
+	@Override
+	public void write(Closure closure) {
 		
-		ReadFileTask readFileTask = new ReadFileTask()
-		readFileTask.closure = closure
-		stepTask.tasks << readFileTask
+		WriteTask writeTask = new WriteTask()
+		writeTask.closure = closure
+		
+		flowTask.executeTask(writeTask)
 	}
 	
-	String getName() {
-		"io"
-	}
+	@Override
+	public void read(Closure closure) {
 
-	FlowPlugin createInstance() {
-		return new IOPlugin()
+		ReadTask readTask = new ReadTask()
+		readTask.closure = closure
+		
+		flowTask.executeTask(readTask)
 	}
 	
-	static create() {
+	@Override
+	public String getName() {
+		return 'io';
+	}
+	
+	static IOPlugin create() {
 		return new IOPlugin()
 	}
 }

@@ -1,4 +1,4 @@
-package de.andycandy.flow.task
+package de.andycandy.flow.task.for_each
 
 class CollectionEntryInput {
 	

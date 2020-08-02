@@ -37,9 +37,7 @@ class App {
 	Object evaluate(File file) {
 		
 		ImportCustomizer importCustomizer = new ImportCustomizer()
-		importCustomizer.addStarImports('de.andycandy.flow')
-		importCustomizer.addStarImports('de.andycandy.flow.task')
-		importCustomizer.addStaticImport('de.andycandy.flow.FlowDSL', 'flow')
+		importCustomizer.addStaticImport('de.andycandy.flow.FlowDSL', 'createFlow')
 		
 		CompilerConfiguration compilerConfiguration = new CompilerConfiguration()
 		compilerConfiguration.addCompilationCustomizers(importCustomizer)

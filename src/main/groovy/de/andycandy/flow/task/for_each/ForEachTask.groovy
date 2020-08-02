@@ -1,16 +1,21 @@
-package de.andycandy.flow.task
+package de.andycandy.flow.task.for_each
 
-class EachTask extends Task {
+import static de.andycandy.flow.task.TaskUtil.*
+
+import de.andycandy.flow.task.AutoCleanTask
+import de.andycandy.flow.task.Task
+import de.andycandy.flow.task.TaskUtil
+
+class ForEachTask extends AutoCleanTask {
 	
 	Task task
-	
+
 	@Override
-	public void call() {
+	public void callWithClean() {
 		
-		task.context = context
 		output = []
 		
-		if (input instanceof Collection) {
+		if (isCollection(input)) {
 			
 			callForInput { index, input ->
 				
@@ -19,7 +24,7 @@ class EachTask extends Task {
 				collectionEntryInput.value = input
 				collectionEntryInput
 			}
-		} else if (input instanceof Map) {
+		} else if (isMap(input)) {
 			
 			callForInput { index, input ->
 				
@@ -45,7 +50,7 @@ class EachTask extends Task {
 			task.clearOutput()
 			task.call()
 			
-			if (task.hasOutput()) {				
+			if (task.hasOutput()) {
 				output << task.output
 			}
 			++index

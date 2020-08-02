@@ -2,8 +2,6 @@ package de.andycandy.flow.task
 
 abstract class Task {
 	
-	def context;
-	
 	def input;
 	
 	def output;
@@ -11,14 +9,6 @@ abstract class Task {
 	private boolean hasInput = false
 	
 	private boolean hasOutput = false
-	
-	void setContext(context) {
-		this.context = context
-	}
-	
-	def getContext() {
-		this.context
-	}
 	
 	void setInput(input) {
 		hasInput = true

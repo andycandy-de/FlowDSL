@@ -1,4 +1,4 @@
-flow {
+createFlow {
 	
 	input { 3 }
 	
@@ -7,8 +7,11 @@ flow {
 	}
 	
 	forEach {
+	
+		mapValue()
+		
 		code {
-			output = input.value * input.value
+			output = input * input
 		}
 	}
 }

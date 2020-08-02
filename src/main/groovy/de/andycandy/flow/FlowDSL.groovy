@@ -1,13 +1,15 @@
 package de.andycandy.flow
 
-import de.andycandy.flow.task.StepTask
+import de.andycandy.flow.task.flow.FlowTask
+import de.andycandy.flow.task.flow.FlowTaskDelegate
 
 class FlowDSL {
 	
-	static StepTask flow(@DelegatesTo(value = StepTaskDSL, strategy = Closure.DELEGATE_FIRST) Closure closure) {
+	static FlowTask createFlow(@DelegatesTo(value = FlowTaskDelegate, strategy = Closure.DELEGATE_FIRST) Closure closure) {
 		
-		StepTaskDSL stepTaskDSL = new StepTaskDSL()
+		FlowTask stepTask = new FlowTask()		
+		stepTask.closure = closure
 		
-		return stepTaskDSL.createStepTask(closure)
+		return stepTask
 	}
 }

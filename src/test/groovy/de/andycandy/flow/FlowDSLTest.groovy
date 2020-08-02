@@ -1,6 +1,6 @@
 package de.andycandy.flow
 
-import static de.andycandy.flow.FlowDSL.flow
+import static de.andycandy.flow.FlowDSL.createFlow
 
 import de.andycandy.flow.task.Task
 import spock.lang.Specification
@@ -10,7 +10,7 @@ class FlowDSLTest extends Specification {
 	
 	def 'test flow'() {
 		when:
-		Task task = flow {
+		Task task = createFlow {
 			
 			forEach {
 				
@@ -40,7 +40,7 @@ class FlowDSLTest extends Specification {
 	
 	def 'test flow input'() {
 		when:
-		Task task = flow {
+		Task task = createFlow {
 			
 			input { 200 }
 			
@@ -81,28 +81,25 @@ class FlowDSLTest extends Specification {
 	
 	def 'test flow with conditional'() {
 		when:
-		Task task = flow {
+		Task task = createFlow {
 			
 			input { (0 .. 10) }
 			
 			forEach {
 				
-				map { entry -> entry.value }
+				mapValue()
 				
-				filter { value -> value % 2 == 0 }
+				filter { input % 2 == 0 }
 				
 				conditional { hasInput() } {
 					
 					map { input * 2}
-					
 				}
 				
 				conditional { !hasInput() } {
 					
 					input { -1 }
-					
 				}
-				
 			}
 		}
 		
@@ -114,9 +111,9 @@ class FlowDSLTest extends Specification {
 	
 	def 'test flow with context'() {
 		when:
-		Task task = flow {
+		Task task = createFlow {
 			
-			context {
+			def context = context {
 				multipy = 10
 			}
 			
@@ -124,16 +121,14 @@ class FlowDSLTest extends Specification {
 			
 			forEach {
 				
-				map { entry -> entry.value }
+				mapValue()
 				
-				filter { value -> value % 2 == 1 }
+				filter { input % 2 == 1 }
 				
 				conditional { hasInput() } {
 					
 					code { output = input * context.multipy }
-					
-				}
-				
+				}	
 			}
 		}
 		
@@ -145,9 +140,9 @@ class FlowDSLTest extends Specification {
 	
 	def 'test flow with plugin'() {
 		when:
-		Task task = flow {
+		Task task = createFlow {
 			
-			context {
+			def context = context {
 				dir = 'src/test/resources/de/andycandy/flow/dir'
 			}
 			
@@ -161,7 +156,9 @@ class FlowDSLTest extends Specification {
 			
 			forEach {
 				
-				map { input.value.name }
+				mapValue()
+				
+				map { input.name }
 			}
 		}
 		
@@ -174,7 +171,7 @@ class FlowDSLTest extends Specification {
 	
 	def 'test flow with plugin write'() {
 		when:
-		Task task = flow {
+		Task task = createFlow {
 			
 			plugins {
 				register IOPlugin.create()
@@ -189,10 +186,10 @@ class FlowDSLTest extends Specification {
 				'''
 			}
 			
-			step {
+			flow {
 				
-				io.write {
-					file = 'test.txt'
+				io.write {						
+					file 'test.txt'
 				}
 			}
 		}
@@ -206,9 +203,80 @@ class FlowDSLTest extends Specification {
 		(new File('test.txt')).delete()
 	}
 	
+	
+	def 'test flow with plugin write no override'() {
+		when:
+		Task task = createFlow {
+			
+			plugins {
+				register IOPlugin.create()
+			}
+			
+			input {
+				'''
+				Das ist der Output Text
+				Über meherere Zeilen
+				TEST
+
+				'''
+			}
+			
+			io.write {
+				file 'test.txt'
+			}
+			
+			io.write {
+				file 'test.txt'
+			}
+		}
+		
+		task.call()
+		
+		then:
+		final IllegalStateException exception = thrown()
+		'The file \'test.txt\' already exists!' == exception.message
+		
+		cleanup:
+		(new File('test.txt')).delete()
+	}
+	
+	def 'test flow with plugin write override'() {
+		when:
+		Task task = createFlow {
+			
+			plugins {
+				register IOPlugin.create()
+			}
+			
+			input { 'testcontent' }
+			
+			io.write {
+				file 'test.txt'
+			}
+			
+			input { 'testcontent2' }
+			
+			io.write {
+				override()
+				file 'test.txt'
+			}
+		}
+		
+		task.call()
+		
+		File testFile = new File('test.txt')
+		
+		then:
+		testFile.exists()
+		'testcontent2' == testFile.text
+		
+		cleanup:
+		testFile.delete()
+	}
+	
 	def 'test flow with plugin read'() {
 		when:
-		Task task = flow {
+		Task task = createFlow {
 			
 			plugins {
 				register IOPlugin.create()
@@ -225,7 +293,7 @@ class FlowDSLTest extends Specification {
 			forEach {
 				
 				io.read {
-					file = input.value
+					file input.value
 				}
 				
 				filter {input.length() > 0}
@@ -236,5 +304,99 @@ class FlowDSLTest extends Specification {
 		
 		then:
 		['Test2Content', 'Test3Content'] == task.output
+	}
+	
+	def 'test value holder'() {
+		when:
+		Task task = createFlow {
+			
+			input {
+				(3 .. 6)
+			}
+			
+			def anyHolder = valueHolder()
+			
+			code {
+				passInputToOutput()
+				anyHolder.value = []
+			}
+			
+			forEach {
+				
+				code {
+					passInputToOutput()
+					anyHolder.value << (input.index * input.index)
+				}
+				
+				map {
+					def map = [:]
+					map[input.index] = input.value
+					map
+				}
+			}
+			flatten()
+			
+			forEach {
+				
+				def keyHolder = valueHolder { input.key }
+				
+				mapValue()
+				
+				map { input * 2 }
+				
+				def valueHolder = valueHolder { input }
+				
+				input { anyHolder.value }
+				
+				forEach {
+					
+					mapValue()
+					
+					map { input + keyHolder.value + valueHolder.value }
+				}
+			}			
+			flatten()
+		}
+		
+		task.call()
+		
+		then:
+		[6, 7, 10, 15, 9, 10, 13, 18, 12, 13, 16, 21, 15, 16, 19, 24] == task.output
+	}
+	
+	def 'test filter list'() {
+		when:
+		Task task = createFlow {
+			
+			input {
+				(0 .. 6)
+			}
+			
+			filter { input % 2 == 1 }
+		}
+		
+		task.call()
+		
+		then:
+		[1, 3, 5] == task.output
+	}
+	
+	
+	
+	def 'test map list'() {
+		when:
+		Task task = createFlow {
+			
+			input {
+				(0 .. 3)
+			}
+			
+			map { input * 2 }
+		}
+		
+		task.call()
+		
+		then:
+		[0, 2, 4, 6] == task.output
 	}
 }

@@ -1,39 +1,43 @@
-package de.andycandy.flow.task
+package de.andycandy.flow.task.flatten
 
-class FlattenTask extends Task {
+import static de.andycandy.flow.task.TaskUtil.*
+
+import de.andycandy.flow.task.AutoCleanTask
+
+class FlattenTask extends AutoCleanTask {
 	
 	int deep = 1
 
 	@Override
-	public void call() {
+	public void callWithClean() {
 		
-		if (!(input instanceof Collection)) {
+		if (!isCollection(input)) {
 			throw new IllegalStateException('Input must be an instance of Collection')
 		}
 		
 		flatten(input, deep)
 	}
 	
-	def flatten(input, int deep) {
+	void flatten(input, int deep) {
 		
 		if (deep == 0) {
 			append(input)
 			return
 		}
 		
-		if (!(input instanceof Collection) && !(input instanceof Map)) {
+		if (!isCollection(input) && !isMap(input)) {
 			throw new IllegalStateException('Input must contain Collections or Maps')
 		}
 		
 		input.each { flatten(it, deep - 1) }
 	}
 	
-	def append(input) {
+	void append(input) {
 		
-		if (input instanceof Collection) {
+		if (isCollection(input)) {
 			appendList(input)
 		}
-		else if (input instanceof Map) {
+		else if (isMap(input)) {
 			appendMap(input)
 		}
 		else {
@@ -41,7 +45,7 @@ class FlattenTask extends Task {
 		}
 	}
 	
-	def appendList(Collection collection) {
+	void appendList(Collection collection) {
 		if (!hasOutput()) {
 			output = []
 		}
@@ -51,7 +55,7 @@ class FlattenTask extends Task {
 		output += collection
 	}
 	
-	def appendMap(Map map) {
+	void appendMap(Map map) {
 		if (!hasOutput()) {
 			output = [:]
 		}
