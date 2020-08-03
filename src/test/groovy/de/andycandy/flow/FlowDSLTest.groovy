@@ -176,6 +176,8 @@ class FlowDSLTest extends Specification {
 		
 		task.call()
 		
+		throw new RuntimeException(task.output)
+		
 		then:
 		['test1', 'test2', 'test3'] == task.output
 		
@@ -322,6 +324,8 @@ class FlowDSLTest extends Specification {
 		}
 		
 		task.call()
+		
+		throw new RuntimeException(task.output)
 		
 		then:
 		['Test2Content', 'Test3Content'] == task.output
