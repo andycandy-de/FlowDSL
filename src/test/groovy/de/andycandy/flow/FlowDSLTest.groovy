@@ -917,6 +917,68 @@ class FlowDSLTest extends Specification {
 		'Input must be an instance of Collection or Map' == exception.message
 	}
 	
+	@Test
+	def 'test read with charset'() {
+		
+		setup:
+		def temp = createTemp('de/andycandy/flow/dir')
+		
+		when:
+		Task task = createFlow {
+						
+			plugins {
+				
+				register IOPlugin.create()
+			}
+			
+			io.read {
+				
+				file "${temp}/test2"
+				charset 'UTF-8'
+			}
+		}
+		
+		task.call()
+		
+		then:
+		'Test2Content' == task.output
+		
+		cleanup:
+		deleteTempDir(temp)
+	}
+	
+	@Test
+	def 'test read with multiple charset error'() {
+		
+		setup:
+		def temp = createTemp('de/andycandy/flow/dir')
+		
+		when:
+		Task task = createFlow {
+						
+			plugins {
+				
+				register IOPlugin.create()
+			}
+			
+			io.read {
+				
+				file "${temp}/test2"
+				charset 'UTF-8'
+				charset 'UTF-16'
+			}
+		}
+		
+		task.call()
+		
+		then:
+		final IllegalStateException exception = thrown()
+		'It not allowed to define multiple charsets!' == exception.message
+		
+		cleanup:
+		deleteTempDir(temp)
+	}
+	
 	def getUnreachableDir() {
 		
 		if (System.getProperty("os.name").startsWithIgnoreCase('windows')) {

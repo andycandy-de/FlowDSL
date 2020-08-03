@@ -1,5 +1,8 @@
 package de.andycandy.flow.plugin.io.read
 
+import java.nio.charset.Charset
+import java.nio.charset.StandardCharsets
+
 import de.andycandy.flow.task.AutoCleanTask
 import de.andycandy.protect_me.ast.Protect
 
@@ -10,6 +13,8 @@ class ReadTask extends AutoCleanTask implements ReadTaskDelegate {
 	
 	File readFile
 	
+	Charset readCharset
+	
 	@Override
 	public void callWithClean() {
 		
@@ -18,7 +23,8 @@ class ReadTask extends AutoCleanTask implements ReadTaskDelegate {
 		
 		closure.call()
 		
-		output = readFile.text
+		def readCharset = (this.readCharset != null) ? this.readCharset : StandardCharsets.UTF_8
+		output = readFile.getText(readCharset.toString())
 	}
 	
 	@Override
@@ -34,5 +40,20 @@ class ReadTask extends AutoCleanTask implements ReadTaskDelegate {
 		}
 		
 		readFile = file
+	}
+
+	@Override
+	public void charset(String string) {
+		charset(Charset.forName(string))
+	}
+
+	@Override
+	public void charset(Charset charset) {
+		
+		if (readCharset != null) {
+			throw new IllegalStateException('It not allowed to define multiple charsets!')
+		}
+		
+		readCharset = charset
 	}
 }
