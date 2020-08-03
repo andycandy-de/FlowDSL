@@ -176,8 +176,6 @@ class FlowDSLTest extends Specification {
 		
 		task.call()
 		
-		throw new RuntimeException(task.output)
-		
 		then:
 		['test1', 'test2', 'test3'] == task.output
 		
@@ -325,11 +323,8 @@ class FlowDSLTest extends Specification {
 		
 		task.call()
 		
-		println task.output
-		
 		then:
-		//['Test2Content', 'Test3Content'] == task.output
-		2 == task.output.size()
+		['Test2Content', 'Test3Content'] == task.output
 		
 		cleanup:
 		deleteTempDir(temp)
@@ -983,6 +978,35 @@ class FlowDSLTest extends Specification {
 		cleanup:
 		deleteTempDir(temp)
 	}
+	
+	@Test
+	def 'test ls with multiple dirs error'() {
+		
+		setup:
+		def anyDir = 'anyDir'
+				
+		when:
+		Task task = createFlow {
+						
+			plugins {
+				
+				register IOPlugin.create()
+			}
+			
+			io.ls {
+				
+				dir anyDir
+				dir anyDir
+			}
+		}
+		
+		task.call()
+		
+		then:
+		final IllegalStateException exception = thrown()
+		'It not allowed to define multiple dirs!' == exception.message
+	}
+	
 	
 	def getUnreachableDir() {
 		

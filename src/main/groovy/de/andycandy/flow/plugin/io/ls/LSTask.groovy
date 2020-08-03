@@ -6,7 +6,7 @@ import de.andycandy.protect_me.ast.Protect
 @Protect(classes = [LSTaskDelegate])
 class LSTask extends AutoCleanTask implements LSTaskDelegate {
 
-	List<File> dirs = []
+	File lsDir
 
 	Closure closure
 
@@ -18,11 +18,7 @@ class LSTask extends AutoCleanTask implements LSTaskDelegate {
 		
 		closure.call()
 		
-		List<File> result = []
-		
-		dirs.each { dir -> dir.listFiles().each { result << it } }
-		
-		output = result
+		output = lsDir.listFiles().toList().sort()
 	}
 
 	@Override
@@ -32,6 +28,11 @@ class LSTask extends AutoCleanTask implements LSTaskDelegate {
 
 	@Override
 	public void dir(File dir) {
-		dirs << dir
+		
+		if (lsDir != null) {
+			throw new IllegalStateException('It not allowed to define multiple dirs!')
+		}
+		
+		lsDir = dir
 	}
 }
