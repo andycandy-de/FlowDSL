@@ -11,7 +11,7 @@ class MapValueTask extends AutoCleanTask {
 	public void callWithClean() {
 		
 		if (!isMapEntryInput(input) && !isCollectionEntryInput(input)) {			
-			throw new IllegalArgumentException("Input '${input}' is not instance of CollectionEntryInput or MapEntryInput")
+			throw new IllegalArgumentException("Input type '${input.class.simpleName}' is not instance of CollectionEntryInput or MapEntryInput")
 		}
 		
 		output = input.value		

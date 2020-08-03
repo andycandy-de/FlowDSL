@@ -28,7 +28,7 @@ class ContextTask extends AutoCleanTask implements ContextTaskDelegate {
 	public Object propertyMissing(String name, Object value) {
 		
 		if (properties.containsKey(name)) {
-			throw new ReadOnlyPropertyException(value)
+			throw new ReadOnlyPropertyException(value, ContextTask)
 		}
 		
 		properties[name] = value
@@ -38,7 +38,7 @@ class ContextTask extends AutoCleanTask implements ContextTaskDelegate {
 	public Object propertyMissing(String name) {
 		
 		if (!properties.containsKey(name)) {
-			throw new MissingPropertyException(name)
+			throw new MissingPropertyException(name, ContextTask)
 		}
 
 		properties[name]

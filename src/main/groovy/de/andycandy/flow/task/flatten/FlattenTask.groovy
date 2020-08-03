@@ -3,36 +3,41 @@ package de.andycandy.flow.task.flatten
 import static de.andycandy.flow.task.TaskUtil.*
 
 import de.andycandy.flow.task.AutoCleanTask
+import de.andycandy.flow.task.TaskUtil
 
 class FlattenTask extends AutoCleanTask {
 	
 	int deep = 1
 
 	@Override
-	public void callWithClean() {
-		
-		if (!isCollection(input)) {
-			throw new IllegalStateException('Input must be an instance of Collection')
-		}
-		
+	public void callWithClean() {		
 		flatten(input, deep)
 	}
 	
-	void flatten(input, int deep) {
+	void setDeep(int deep) {
+		
+		if (deep < 1) {
+			throw new IllegalStateException('Deep cannot be lower than 1')
+		}
+		
+		this.deep = deep
+	}
+	
+	void flatten(Object input, int deep) {
 		
 		if (deep == 0) {
 			append(input)
 			return
 		}
 		
-		if (!isCollection(input) && !isMap(input)) {
-			throw new IllegalStateException('Input must contain Collections or Maps')
+		if (!isCollection(input)) {
+			throw new IllegalStateException('Input must be an instance of Collection')
 		}
 		
 		input.each { flatten(it, deep - 1) }
 	}
 	
-	void append(input) {
+	void append(Object input) {
 		
 		if (isCollection(input)) {
 			appendList(input)
@@ -46,21 +51,23 @@ class FlattenTask extends AutoCleanTask {
 	}
 	
 	void appendList(Collection collection) {
+		
 		if (!hasOutput()) {
 			output = []
 		}
-		if (!output instanceof List) {
-			throw new IllegalStateException('Input must contain Collections or Maps')
+		if (!isList(output)) {
+			throw new IllegalStateException('Input types are incompatible! Input collection must contain only collections or only lists!')
 		}
 		output += collection
 	}
 	
 	void appendMap(Map map) {
+		
 		if (!hasOutput()) {
 			output = [:]
 		}
-		if (!output instanceof Map) {
-			throw new IllegalStateException('Input must contain Collections or Maps')
+		if (!isMap(output)) {
+			throw new IllegalStateException('Input types are incompatible! Input collection must contain only collections or only lists!')
 		}
 		output += map
 	}

@@ -10,7 +10,7 @@ class MapKeyTask extends AutoCleanTask {
 	public void callWithClean() {
 		
 		if(!isMapEntryInput(input)) {
-			throw new IllegalArgumentException("Input '${input}' is not instance of MapEntryInput")
+			throw new IllegalArgumentException("Input type '${input.class.simpleName}' is not instance of MapEntryInput")
 		}
 		
 		output = input.key

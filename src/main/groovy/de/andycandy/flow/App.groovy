@@ -47,7 +47,12 @@ class App {
 		Task task = groovyShell.evaluate(file)
 		
 		task.call()
-		task.output
+		
+		if (task.hasOutput()) {			
+			return task.output
+		}
+		
+		return null
 	}
 	
 	void printErr(String text) {

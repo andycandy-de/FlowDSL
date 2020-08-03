@@ -159,16 +159,16 @@ class FlowTask extends AutoCleanTask implements FlowTaskDelegate {
 	protected FlowPlugin findFlowPlugin(String name) {
 		
 		if (plugins.containsKey(name)) {
+			
 			plugins[name].flowTask = this
 			return plugins[name]
 		}
 		
 		if (parent != null) {
+			
 			FlowPlugin flowPlugin = parent.findFlowPlugin(name)
-			if (flowPlugin != null) {
-				flowPlugin.flowTask = this
-				return flowPlugin
-			}
+			flowPlugin.flowTask = this
+			return flowPlugin
 		}
 		
 		throw new MissingPropertyException(name)

@@ -54,6 +54,10 @@ class TaskUtil {
 		return isInstanceOf(Map, object)
 	}
 	
+	static boolean isList(Object object) {
+		return isInstanceOf(List, object)
+	}
+	
 	static boolean isMapEntryInput(Object object) {
 		return isInstanceOf(MapEntryInput, object)
 	}

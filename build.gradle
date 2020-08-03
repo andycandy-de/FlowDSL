@@ -20,10 +20,10 @@ repositories {
 dependencies {
 	
     implementation "org.codehaus.groovy:groovy-all:$groovyVersion"
-
-    testImplementation "org.spockframework:spock-core:$spockVersion"
 	
 	implementation "com.github.andycandy-de:protect-me-ast:$protectMeVersion"
+
+    testImplementation "org.spockframework:spock-core:$spockVersion"
 }
 
 application {
