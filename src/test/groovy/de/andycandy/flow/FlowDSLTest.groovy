@@ -2,6 +2,10 @@ package de.andycandy.flow
 
 import static de.andycandy.flow.FlowDSL.createFlow
 
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+
 import org.junit.Test
 
 import de.andycandy.flow.task.Task
@@ -144,11 +148,14 @@ class FlowDSLTest extends Specification {
 	
 	@Test
 	def 'test flow with plugin'() {
+		setup:
+		def temp = createTemp('de/andycandy/flow/dir')
+		
 		when:
 		Task task = createFlow {
 			
 			def context = context {
-				dir = 'src/test/resources/de/andycandy/flow/dir'
+				dir = temp.toString()
 			}
 			
 			plugins {
@@ -171,6 +178,9 @@ class FlowDSLTest extends Specification {
 		
 		then:
 		['test1', 'test2', 'test3'] == task.output
+		
+		cleanup:
+		deleteTempDir(temp)
 	}
 	
 	@Test	
@@ -282,6 +292,10 @@ class FlowDSLTest extends Specification {
 	
 	@Test
 	def 'test flow with plugin read'() {
+		
+		setup:
+		def temp = createTemp('de/andycandy/flow/dir')
+		
 		when:
 		Task task = createFlow {
 			
@@ -290,7 +304,7 @@ class FlowDSLTest extends Specification {
 			}
 			
 			input {
-				'src/test/resources/de/andycandy/flow/dir'
+				temp.toString()
 			}
 			
 			io.ls {
@@ -311,6 +325,9 @@ class FlowDSLTest extends Specification {
 		
 		then:
 		['Test2Content', 'Test3Content'] == task.output
+		
+		cleanup:
+		deleteTempDir(temp)
 	}
 	
 	@Test
@@ -508,8 +525,8 @@ class FlowDSLTest extends Specification {
 	@Test
 	def 'test create parent error'() {
 		when:
-		
-		def writeFile = new File('ABC:/test/test.txt')
+		def parent = getUnreachableDir()
+		def writeFile = new File(parent, 'test.txt')
 		def fileText = 'AnyText'
 		
 		Task task = createFlow {
@@ -531,7 +548,7 @@ class FlowDSLTest extends Specification {
 		
 		then:
 		final IllegalStateException exception = thrown()
-		'Cannot create directory \'ABC:\\test\'!' == exception.message
+		"Cannot create directory '${parent}'!" == exception.message
 	}
 	
 	@Test
@@ -783,7 +800,7 @@ class FlowDSLTest extends Specification {
 	@Test
 	def 'test read multiple files error'() {
 		
-		def readFile = new File('src/test/resources/de/andycandy/flow/dir/test2')
+		def readFile = new File('anyFile')
 		when:
 		Task task = createFlow {
 						
@@ -809,6 +826,9 @@ class FlowDSLTest extends Specification {
 	@Test
 	def 'test read file'() {
 		
+		setup:
+		def temp = createTemp('de/andycandy/flow/dir')
+		
 		when:
 		Task task = createFlow {
 						
@@ -819,7 +839,7 @@ class FlowDSLTest extends Specification {
 			
 			io.read {
 				
-				file 'src/test/resources/de/andycandy/flow/dir/test2'
+				file "${temp}/test2"
 			}
 		}
 		
@@ -827,6 +847,9 @@ class FlowDSLTest extends Specification {
 		
 		then:
 		'Test2Content' == task.output
+		
+		cleanup:
+		deleteTempDir(temp)
 	}
 	
 	@Test
@@ -892,5 +915,37 @@ class FlowDSLTest extends Specification {
 		then:
 		final IllegalStateException exception = thrown()
 		'Input must be an instance of Collection or Map' == exception.message
+	}
+	
+	def getUnreachableDir() {
+		
+		if (System.getProperty("os.name").startsWithIgnoreCase('windows')) {
+			return new File('ABC:/test/')
+		}
+		else {
+			return new File('/../../')
+		}
+	}
+	
+	def createTemp(String path) {
+		
+		Path temp = Files.createTempDirectory('test')
+		Files.createDirectories(temp)
+		
+		def files = (new File(Thread.currentThread().getContextClassLoader().getResource(path).path)).listFiles()
+		
+		files.each {
+			Files.copy(it.toPath(), Paths.get(temp.toString(), it.name))
+		}
+		
+		return temp
+	}
+	
+	def deleteTempDir(Path temp) {
+		
+		Files.walk(temp) \
+			.sorted(Comparator.reverseOrder()) \
+			.map { it.toFile() } \
+			.forEach { it.delete() }
 	}
 }
