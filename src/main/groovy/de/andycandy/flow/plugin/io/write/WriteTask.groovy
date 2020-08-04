@@ -92,11 +92,7 @@ class WriteTask extends AutoCleanTask implements WriteTaskDelegate {
 	}
 	
 	private boolean tryCreateDirs(File file) {
-		try {
-			return Files.createDirectories(file.toPath())
-		}
-		catch (Exception e) {
-			return false
-		}
+		file.mkdirs()
+		return file.exists()
 	}
 }
