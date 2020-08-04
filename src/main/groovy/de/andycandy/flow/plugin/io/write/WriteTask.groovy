@@ -37,7 +37,7 @@ class WriteTask extends AutoCleanTask implements WriteTaskDelegate {
 		if (parent.exists() && !parent.isDirectory()) {
 			throw new IllegalStateException("'${parent}' is not a directory!")
 		}
-		if (!parent.exists() && !tryCreateDirs(parent)) {
+		if (!parent.exists() && !parent.mkdirs()) {
 			throw new IllegalStateException("Cannot create directory '${parent}'!")
 		}
 		if (writeFile.exists() && writeFile.isFile()) {
@@ -88,9 +88,5 @@ class WriteTask extends AutoCleanTask implements WriteTaskDelegate {
 		}
 		
 		writeCharset = charset
-	}
-	
-	private boolean tryCreateDirs(File file) {
-		return file.mkdirs()
 	}
 }
