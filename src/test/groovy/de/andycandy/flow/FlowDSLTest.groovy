@@ -1153,7 +1153,7 @@ class FlowDSLTest extends Specification {
 			return new File('ABC:/test/')
 		}
 		else {
-			return new File('/../../')
+			return new File('/root/anyDir/')
 		}
 	}
 	

@@ -4,7 +4,6 @@ import static de.andycandy.flow.task.TaskUtil.passInputToOutput
 
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
-import java.nio.file.Files
 
 import de.andycandy.flow.task.AutoCleanTask
 import de.andycandy.protect_me.ast.Protect
@@ -92,7 +91,6 @@ class WriteTask extends AutoCleanTask implements WriteTaskDelegate {
 	}
 	
 	private boolean tryCreateDirs(File file) {
-		file.mkdirs()
-		return file.exists()
+		return file.mkdirs()
 	}
 }
