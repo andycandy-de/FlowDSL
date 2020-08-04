@@ -60,6 +60,7 @@ class ForEachTask extends AutoCleanTask {
 	}
 	
 	void correctOutput() {
+		
 		if (output.isEmpty()) {
 			return
 		}

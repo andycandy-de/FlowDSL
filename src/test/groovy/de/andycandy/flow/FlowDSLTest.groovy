@@ -1147,6 +1147,61 @@ class FlowDSLTest extends Specification {
 		'It\'s not allowed to define multiple charsets!' == exception.message
 	}
 	
+	@Test
+	def 'test flow map for map'() {
+				
+		when:
+		Task task = createFlow {
+			
+			input { [1:2, 3:4] }
+			
+			map { input.key }
+		}
+		
+		task.call()
+		
+		then:
+		[1, 3] == task.output
+	}
+	
+	@Test
+	def 'test flow forEach toList'() {
+				
+		when:
+		Task task = createFlow {
+			
+			input { [1, 2, 3, 4] }
+			
+			forEach {
+				filter { input.value % 2 == 0 }
+			}
+		}
+		
+		task.call()
+		
+		then:
+		[2, 4] == task.output
+	}
+	
+	@Test
+	def 'test flow forEach empty list'() {
+				
+		when:
+		Task task = createFlow {
+			
+			input { [1, 2, 3, 4] }
+			
+			forEach {
+				filter { input.value > 5 }
+			}
+		}
+		
+		task.call()
+		
+		then:
+		[] == task.output
+	}
+	
 	def getUnreachableDir() {
 		
 		if (System.getProperty("os.name").startsWithIgnoreCase('windows')) {
