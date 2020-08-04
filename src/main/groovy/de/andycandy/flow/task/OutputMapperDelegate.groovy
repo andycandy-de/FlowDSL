@@ -1,6 +1,6 @@
-package de.andycandy.flow.task.code
+package de.andycandy.flow.task
 
-interface CodeTaskDelegate {
+interface OutputMapperDelegate {
 	
 	boolean hasInput()
 	
@@ -13,6 +13,4 @@ interface CodeTaskDelegate {
 	void setOutput(Object output)
 	
 	void clearOutput()
-	
-	void passInputToOutput()
 }

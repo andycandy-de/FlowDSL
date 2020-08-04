@@ -1,10 +1,6 @@
 package de.andycandy.flow.task.for_each
 
-class MapEntryInput {
+class MapEntryInput extends MapEntry {
 	
 	int index
-	
-	def key
-	
-	def value
 }

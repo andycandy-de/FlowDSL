@@ -2,6 +2,10 @@ package de.andycandy.flow.plugin.io.write
 
 import static de.andycandy.flow.task.TaskUtil.passInputToOutput
 
+import java.nio.charset.Charset
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+
 import de.andycandy.flow.task.AutoCleanTask
 import de.andycandy.protect_me.ast.Protect
 
@@ -13,6 +17,8 @@ class WriteTask extends AutoCleanTask implements WriteTaskDelegate {
 	boolean override = false
 	
 	File writeFile
+	
+	Charset writeCharset
 	
 	@Override
 	public void callWithClean() {
@@ -32,7 +38,7 @@ class WriteTask extends AutoCleanTask implements WriteTaskDelegate {
 		if (parent.exists() && !parent.isDirectory()) {
 			throw new IllegalStateException("'${parent}' is not a directory!")
 		}
-		if (!parent.exists() && !parent.mkdirs()) {
+		if (!parent.exists() && !tryCreateDirs(parent)) {
 			throw new IllegalStateException("Cannot create directory '${parent}'!")
 		}
 		if (writeFile.exists() && writeFile.isFile()) {
@@ -44,7 +50,10 @@ class WriteTask extends AutoCleanTask implements WriteTaskDelegate {
 			}
 		}
 		
-		writeFile << input
+		def writeCharset = (this.writeCharset != null) ? this.writeCharset : StandardCharsets.UTF_8
+		writeFile.newWriter(writeCharset.toString()).withCloseable { 
+			it << input
+		}
 	}
 	
 	@Override
@@ -65,5 +74,29 @@ class WriteTask extends AutoCleanTask implements WriteTaskDelegate {
 		}
 		
 		writeFile = file
+	}
+	
+	@Override
+	public void charset(String string) {
+		this.charset(Charset.forName(string))
+	}
+
+	@Override
+	public void charset(Charset charset) {
+		
+		if (writeCharset != null) {
+			throw new IllegalStateException('It\'s not allowed to define multiple charsets!')
+		}
+		
+		writeCharset = charset
+	}
+	
+	private boolean tryCreateDirs(File file) {
+		try {
+			return file.mkdirs()
+		}
+		catch (FileNotFoundException e) { // Linux
+			return false
+		}
 	}
 }

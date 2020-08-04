@@ -12,30 +12,32 @@ class IOPlugin implements FlowPlugin, IOPluginDelegate {
 	FlowTask flowTask
 	
 	@Override
-	public void ls(Closure closure) {
+	public void ls(Closure closure, Closure outputMapper = null) {
 		
 		LSTask lsTask = new LSTask()
 		lsTask.closure = closure
+		lsTask.outputMapper = outputMapper
 		
-		flowTask.executeTask(lsTask)
+		flowTask.task(lsTask)
 	}
-	
+
 	@Override
 	public void write(Closure closure) {
 		
 		WriteTask writeTask = new WriteTask()
 		writeTask.closure = closure
 		
-		flowTask.executeTask(writeTask)
+		flowTask.task(writeTask)
 	}
 	
 	@Override
-	public void read(Closure closure) {
+	public void read(Closure closure, Closure outputMapper = null) {
 
 		ReadTask readTask = new ReadTask()
 		readTask.closure = closure
+		readTask.outputMapper = outputMapper
 		
-		flowTask.executeTask(readTask)
+		flowTask.task(readTask)
 	}
 	
 	@Override

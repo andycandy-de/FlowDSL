@@ -14,11 +14,18 @@ class FilterTask extends AutoCleanTask implements FilterTaskDelegate {
 
 	Closure closure
 	
+	private boolean onlySingle = false
+	
 	@Override
 	public void callWithClean() {
 		
-		if (isCollection(input)) {
+		if (onlySingle) {
+			filterForSingle()
+		} else if (isCollection(input)) {
 			filterForCollection()
+		}
+		else if (isMap(input)) {
+			filterForMap()
 		}
 		else {
 			filterForSingle()
@@ -27,13 +34,35 @@ class FilterTask extends AutoCleanTask implements FilterTaskDelegate {
 
 	void filterForCollection() {
 		
+		FilterTask filterTask = new FilterTask()
+		filterTask.closure = closure
+		filterTask.onlySingle = true
+		
 		FlowTask flowTask = FlowDSL.createFlow { 
 			
 			forEach {
 				
 				mapValue()
 				
-				filter(closure)
+				task filterTask
+			}
+		}
+		
+		passInputToInput(this, flowTask)
+		flowTask.call()
+		passOutputToOutput(flowTask, this)
+	}
+	
+	void filterForMap() {
+		
+		FilterTask filterTask = new FilterTask()
+		filterTask.closure = closure
+		filterTask.onlySingle = true
+		
+		FlowTask flowTask = FlowDSL.createFlow {
+			
+			forEach {				
+				task filterTask
 			}
 		}
 		

@@ -12,6 +12,8 @@ import de.andycandy.flow.task.conditional.ConditionalTask
 import de.andycandy.flow.task.context.ContextTask
 import de.andycandy.flow.task.filter.FilterTask
 import de.andycandy.flow.task.flatten.FlattenTask
+import de.andycandy.flow.task.for_each.ForEachFlowTask
+import de.andycandy.flow.task.for_each.ForEachFlowTaskDelegate
 import de.andycandy.flow.task.for_each.ForEachTask
 import de.andycandy.flow.task.for_each.MapKeyTask
 import de.andycandy.flow.task.for_each.MapValueTask
@@ -40,7 +42,7 @@ class FlowTask extends AutoCleanTask implements FlowTaskDelegate {
 		
 		TaskUtil.passInputToOutput(this)
 		
-		closure.delegate = this.toProtectedFlowTaskDelegate()
+		closure.delegate = getFlowTaskDelegate()
 		closure.resolveStrategy = Closure.DELEGATE_FIRST
 		closure.call()
 	}
@@ -51,7 +53,7 @@ class FlowTask extends AutoCleanTask implements FlowTaskDelegate {
 		ContextTask contextTask = new ContextTask()
 		contextTask.closure = closure
 		
-		executeTask(contextTask)
+		task(contextTask)
 		
 		return contextTask
 	}
@@ -63,7 +65,7 @@ class FlowTask extends AutoCleanTask implements FlowTaskDelegate {
 		ValueHolderTask valueHolderTask = new ValueHolderTask()
 		valueHolderTask.closure = closure
 		
-		executeTask(valueHolderTask)
+		task(valueHolderTask)
 		
 		return valueHolderTask;
 	}
@@ -75,16 +77,24 @@ class FlowTask extends AutoCleanTask implements FlowTaskDelegate {
 		pluginTask.flowTask = this
 		pluginTask.closure = closure
 		
-		executeTask(pluginTask)
+		task(pluginTask)
 	}
 	
 	@Override
 	public void forEach(Closure closure) {
 		
 		ForEachTask forEachTask = new ForEachTask()
-		forEachTask.task = createFlowTask(closure, this)
+		forEachTask.task = createForEachFlowTask(closure, this)
 		
-		executeTask(forEachTask)
+		task(forEachTask)
+	}
+	
+	@Override
+	public void task(Task task) {
+		
+		TaskUtil.passOutputToInput(this, task)
+		task.call()
+		TaskUtil.passOutputToOutput(task, this)
 	}
 	
 	@Override
@@ -93,7 +103,7 @@ class FlowTask extends AutoCleanTask implements FlowTaskDelegate {
 		MapTask mapTask = new MapTask()
 		mapTask.closure = closure
 		
-		executeTask(mapTask)
+		task(mapTask)
 	}
 	
 	@Override
@@ -102,7 +112,7 @@ class FlowTask extends AutoCleanTask implements FlowTaskDelegate {
 		FilterTask filterTask = new FilterTask()
 		filterTask.closure = closure
 		
-		executeTask(filterTask)
+		task(filterTask)
 	}
 	
 	public void input(Closure closure) {
@@ -110,7 +120,7 @@ class FlowTask extends AutoCleanTask implements FlowTaskDelegate {
 		InputTask inputTask = new InputTask()
 		inputTask.closure = closure
 		
-		executeTask(inputTask)
+		task(inputTask)
 	}
 	
 	void code(Closure closure) {
@@ -118,11 +128,11 @@ class FlowTask extends AutoCleanTask implements FlowTaskDelegate {
 		CodeTask codeTask = new CodeTask()
 		codeTask.closure = closure
 		
-		executeTask(codeTask)		
+		task(codeTask)		
 	}
 	
 	void flow(Closure closure) {
-		executeTask(createFlowTask(closure, this))
+		task(createFlowTask(closure, this))
 	}
 	
 	@Override
@@ -132,15 +142,7 @@ class FlowTask extends AutoCleanTask implements FlowTaskDelegate {
 		conditionalTask.condition = condition
 		conditionalTask.task = createFlowTask(closure, this)
 		
-		executeTask(conditionalTask)		
-	}
-	
-	void mapValue() {		
-		executeTask(new MapValueTask())
-	}
-	
-	void mapKey() {		
-		executeTask(new MapKeyTask())
+		task(conditionalTask)		
 	}
 	
 	void flatten(int deep = 1) {
@@ -148,7 +150,7 @@ class FlowTask extends AutoCleanTask implements FlowTaskDelegate {
 		FlattenTask flattenTask = new FlattenTask()
 		flattenTask.deep = deep
 		
-		executeTask(flattenTask)
+		task(flattenTask)
 	}
 	
 	@Override
@@ -174,16 +176,22 @@ class FlowTask extends AutoCleanTask implements FlowTaskDelegate {
 		throw new MissingPropertyException(name)
 	}
 	
-	protected void executeTask(Task task) {
-		
-		TaskUtil.passOutputToInput(this, task)
-		task.call()
-		TaskUtil.passOutputToOutput(task, this)
+	protected FlowTaskDelegate getFlowTaskDelegate() {
+		return this.toProtectedFlowTaskDelegate()
 	}
 	
 	protected FlowTask createFlowTask(@DelegatesTo(value = FlowTaskDelegate, strategy = Closure.DELEGATE_FIRST) Closure closure, FlowTask parent = null) {
 		
 		FlowTask flowTask = new FlowTask()
+		flowTask.parent = parent
+		flowTask.closure = closure
+		
+		flowTask
+	}
+	
+	protected FlowTask createForEachFlowTask(@DelegatesTo(value = ForEachFlowTaskDelegate, strategy = Closure.DELEGATE_FIRST) Closure closure, FlowTask parent = null) {
+		
+		ForEachFlowTask flowTask = new ForEachFlowTask()
 		flowTask.parent = parent		
 		flowTask.closure = closure
 		

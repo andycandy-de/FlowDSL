@@ -2,6 +2,7 @@ package de.andycandy.flow.task
 
 import de.andycandy.flow.task.for_each.CollectionEntryInput
 import de.andycandy.flow.task.for_each.MapEntryInput
+import de.andycandy.flow.task.for_each.MapEntry
 
 class TaskUtil {
 	
@@ -64,6 +65,10 @@ class TaskUtil {
 	
 	static boolean isCollectionEntryInput(Object object) {
 		return isInstanceOf(CollectionEntryInput, object)
+	}
+	
+	static boolean isMapEntry(Object object) {
+		return isInstanceOf(MapEntry, object)
 	}
 	
 	static boolean isInstanceOf(Class clazz, Object object) {

@@ -13,8 +13,6 @@ class ForEachTask extends AutoCleanTask {
 	@Override
 	public void callWithClean() {
 		
-		output = []
-		
 		if (isCollection(input)) {
 			
 			callForInput { index, input ->
@@ -42,6 +40,8 @@ class ForEachTask extends AutoCleanTask {
 	
 	void callForInput(Closure closure) {
 		
+		output = []
+		
 		int index = 0
 		input.each {
 			
@@ -55,5 +55,36 @@ class ForEachTask extends AutoCleanTask {
 			}
 			++index
 		}
+		
+		correctOutput()
+	}
+	
+	void correctOutput() {
+		if (output.isEmpty()) {
+			return
+		}
+		
+		if (isCollectionEntryInput(output[0])) {
+			toList()
+		}
+		else if (isMapEntry(output[0])) {
+			toMap()
+		}
+	}
+	
+	void toList() {
+		
+		def list = []
+		output.each { list << it.value }
+		
+		output = list
+	}
+	
+	void toMap() {
+		
+		def map = [:]
+		output.each { map[it.key] = it.value }
+		
+		output = map
 	}
 }

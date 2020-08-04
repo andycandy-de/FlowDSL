@@ -4,12 +4,15 @@ import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 
 import de.andycandy.flow.task.AutoCleanTask
+import de.andycandy.flow.task.OutputMapperDelegate
 import de.andycandy.protect_me.ast.Protect
 
-@Protect(classes = [ReadTaskDelegate])
-class ReadTask extends AutoCleanTask implements ReadTaskDelegate {
+@Protect(classes = [ReadTaskDelegate, OutputMapperDelegate])
+class ReadTask extends AutoCleanTask implements ReadTaskDelegate, OutputMapperDelegate {
 	
 	Closure closure
+	
+	Closure outputMapper
 	
 	File readFile
 	
@@ -25,6 +28,14 @@ class ReadTask extends AutoCleanTask implements ReadTaskDelegate {
 		
 		def readCharset = (this.readCharset != null) ? this.readCharset : StandardCharsets.UTF_8
 		output = readFile.getText(readCharset.toString())
+		
+		if (outputMapper != null) {
+			
+			outputMapper.delegate = this.toProtectedOutputMapperDelegate()
+			outputMapper.resolveStrategy = Closure.DELEGATE_FIRST
+			
+			outputMapper.call()
+		}
 	}
 	
 	@Override
@@ -44,7 +55,7 @@ class ReadTask extends AutoCleanTask implements ReadTaskDelegate {
 
 	@Override
 	public void charset(String string) {
-		charset(Charset.forName(string))
+		this.charset(Charset.forName(string))
 	}
 
 	@Override

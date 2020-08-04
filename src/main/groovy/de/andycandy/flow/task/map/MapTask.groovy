@@ -11,12 +11,19 @@ import de.andycandy.protect_me.ast.Protect
 class MapTask extends AutoCleanTask implements MapTaskDelegate {
 
 	Closure closure
+	
+	private boolean onlySingle = false
 
 	@Override
 	public void callWithClean() {
-
-		if (isCollection(input)) {
+		
+		if (onlySingle) {
+			mapForSingle()
+		} else if (isCollection(input)) {
 			mapForCollection()
+		}
+		else if (isMap(input)) {
+			mapForMap()
 		}
 		else {
 			mapForSingle()
@@ -25,13 +32,35 @@ class MapTask extends AutoCleanTask implements MapTaskDelegate {
 
 	void mapForCollection() {
 		
+		MapTask mapTask = new MapTask()
+		mapTask.closure = closure
+		mapTask.onlySingle = true
+		
 		FlowTask flowTask = FlowDSL.createFlow { 
 			
 			forEach {
 				
 				mapValue()
 				
-				map(closure)
+				task mapTask
+			}
+		}
+		
+		passInputToInput(this, flowTask)
+		flowTask.call()
+		passOutputToOutput(flowTask, this)
+	}
+	
+	void mapForMap() {
+		
+		MapTask mapTask = new MapTask()
+		mapTask.closure = closure
+		mapTask.onlySingle = true
+		
+		FlowTask flowTask = FlowDSL.createFlow {
+			
+			forEach {
+				task mapTask
 			}
 		}
 		

@@ -672,14 +672,19 @@ class FlowDSLTest extends Specification {
 						
 			input { (0 .. 3) }
 			
-			mapValue()
+			forEach {
+				
+				mapValue()
+				
+				mapValue()
+			}
 		}
 		
 		task.call()
 		
 		then:
 		final IllegalArgumentException exception = thrown()
-		'Input type \'IntRange\' is not instance of CollectionEntryInput or MapEntryInput' == exception.message
+		'Input type \'Integer\' is not instance of CollectionEntryInput or MapEntryInput' == exception.message
 	}
 	
 	@Test
@@ -951,7 +956,7 @@ class FlowDSLTest extends Specification {
 	def 'test read with multiple charset error'() {
 		
 		setup:
-		def temp = createTemp('de/andycandy/flow/dir')
+		def anyDir = 'anyDir'
 		
 		when:
 		Task task = createFlow {
@@ -963,7 +968,7 @@ class FlowDSLTest extends Specification {
 			
 			io.read {
 				
-				file "${temp}/test2"
+				file anyDir
 				charset 'UTF-8'
 				charset 'UTF-16'
 			}
@@ -974,9 +979,6 @@ class FlowDSLTest extends Specification {
 		then:
 		final IllegalStateException exception = thrown()
 		'It not allowed to define multiple charsets!' == exception.message
-		
-		cleanup:
-		deleteTempDir(temp)
 	}
 	
 	@Test
@@ -1007,6 +1009,143 @@ class FlowDSLTest extends Specification {
 		'It not allowed to define multiple dirs!' == exception.message
 	}
 	
+	@Test
+	def 'test ls with output mapper'() {
+		
+		setup:
+		def temp = createTemp('de/andycandy/flow/dir')
+		def expected = [:]
+		expected[temp.toString()] = ['test1', 'test2', 'test3']
+				
+		when:
+		Task task = createFlow {
+			
+			input { temp.toString() }
+			
+			plugins { register IOPlugin.create() }
+			
+			io.ls { dir input } {
+				
+				def fileNames = []
+				output.each { fileNames << it.name }
+				
+				output = [:]
+				output[input] = fileNames
+			}
+		}
+		
+		task.call()
+		
+		then:
+		expected == task.output
+		
+		cleanup:
+		deleteTempDir(temp)
+	}
+	
+	@Test
+	def 'test read with output mapper'() {
+		
+		setup:
+		def temp = createTemp('de/andycandy/flow/dir')
+				
+		when:
+		Task task = createFlow {
+			
+			input { temp.toString() }
+			
+			plugins { register IOPlugin.create() }
+			
+			io.ls { dir input }
+			
+			forEach {
+				mapValue()
+				
+				io.read { file input } {
+					
+					def newOutput = []
+					newOutput << input.name << output
+					output = newOutput
+				}
+				
+				toMap {
+					key input[0]
+					value input[1]
+				}
+			}
+			
+			filter { !input.value.isEmpty() }
+		}
+		
+		task.call()
+		
+		then:
+		[test2 : 'Test2Content', test3 : 'Test3Content'] == task.output
+		
+		cleanup:
+		deleteTempDir(temp)
+	}
+	
+	@Test
+	def 'test flow write with charset'() {
+		setup:
+		def temp = createTemp()
+		def testFile = new File(temp.toFile(), 'test.txt')
+		
+		when:
+		Task task = createFlow {
+			
+			plugins { register IOPlugin.create() }
+			
+			input { 'testText' }
+			
+			flow {
+				
+				io.write {
+					file testFile
+					charset 'UTF-8'
+				}
+			}
+		}
+		
+		task.call()
+		
+		then:
+		testFile.exists()
+		'testText' == testFile.text
+		
+		cleanup:
+		deleteTempDir(temp)
+	}
+	
+	@Test
+	def 'test flow write with charset error'() {
+		setup:
+		def testFile = new File('anytest.txt')
+		
+		when:
+		Task task = createFlow {
+			
+			plugins { register IOPlugin.create() }
+			
+			input { 'testText' }
+			
+			flow {
+				
+				io.write {
+					file testFile
+					charset 'UTF-8'
+					charset 'UTF-16'
+				}
+			}
+		}
+		
+		task.call()
+		
+		then:
+		final IllegalStateException exception = thrown()
+		'It\'s not allowed to define multiple charsets!' == exception.message
+	}
 	
 	def getUnreachableDir() {
 		
@@ -1028,6 +1167,14 @@ class FlowDSLTest extends Specification {
 		files.each {
 			Files.copy(it.toPath(), Paths.get(temp.toString(), it.name))
 		}
+		
+		return temp
+	}
+	
+	def createTemp() {
+		
+		Path temp = Files.createTempDirectory('test')
+		Files.createDirectories(temp)
 		
 		return temp
 	}
