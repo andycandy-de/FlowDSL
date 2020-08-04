@@ -24,7 +24,7 @@ class ToMapTask extends AutoCleanTask implements ToMapTaskDelegate {
 		
 		closure.call()
 		
-		if (!keyDefined && !valueDefined) {
+		if (!keyDefined || !valueDefined) {
 			throw new IllegalStateException('Key and Value must be defined!')
 		}
 		
@@ -35,7 +35,7 @@ class ToMapTask extends AutoCleanTask implements ToMapTaskDelegate {
 	public void key(Object key) {
 		
 		if (keyDefined) {
-			throw new IllegalStateException('It\' s not possible to define multiple keys!')
+			throw new IllegalStateException('It\'s not possible to define multiple keys!')
 		}
 		
 		mapEntryOutput.key = key
@@ -46,7 +46,7 @@ class ToMapTask extends AutoCleanTask implements ToMapTaskDelegate {
 	public void value(Object value) {
 		
 		if (valueDefined) {
-			throw new IllegalStateException('It\' s not possible to define multiple keys!')
+			throw new IllegalStateException('It\'s not possible to define multiple values!')
 		}
 		
 		mapEntryOutput.value = value

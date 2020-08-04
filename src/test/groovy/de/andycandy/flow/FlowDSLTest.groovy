@@ -484,7 +484,7 @@ class FlowDSLTest extends Specification {
 		
 		then:
 		final IllegalStateException exception = thrown()
-		'It not allowed to define multiple files!' == exception.message
+		'It\'s not allowed to define multiple files!' == exception.message
 	}
 	
 	@Test
@@ -825,7 +825,7 @@ class FlowDSLTest extends Specification {
 		
 		then:
 		final IllegalStateException exception = thrown()
-		'It not allowed to define multiple files!' == exception.message
+		'It\'s not allowed to define multiple files!' == exception.message
 	}
 	
 	@Test
@@ -978,7 +978,7 @@ class FlowDSLTest extends Specification {
 		
 		then:
 		final IllegalStateException exception = thrown()
-		'It not allowed to define multiple charsets!' == exception.message
+		'It\'s not allowed to define multiple charsets!' == exception.message
 	}
 	
 	@Test
@@ -1006,7 +1006,7 @@ class FlowDSLTest extends Specification {
 		
 		then:
 		final IllegalStateException exception = thrown()
-		'It not allowed to define multiple dirs!' == exception.message
+		'It\'s not allowed to define multiple dirs!' == exception.message
 	}
 	
 	@Test
@@ -1200,6 +1200,98 @@ class FlowDSLTest extends Specification {
 		
 		then:
 		[] == task.output
+	}
+	
+	@Test
+	def 'test flow toMap with multiple key error'() {
+				
+		when:
+		Task task = createFlow {
+			
+			input { [2, 5, 3, 4] }
+			
+			forEach {
+				toMap {
+					key input.index
+					key input.index
+					value input.value
+				}
+			}
+		}
+		
+		task.call()
+		
+		then:
+		final IllegalStateException exception = thrown()
+		'It\'s not possible to define multiple keys!' == exception.message
+	}
+	
+	@Test
+	def 'test flow toMap with multiple value error'() {
+				
+		when:
+		Task task = createFlow {
+			
+			input { [2, 5, 3, 4] }
+			
+			forEach {
+				toMap {
+					key input.index
+					value input.value
+					value input.value
+				}
+			}
+		}
+		
+		task.call()
+		
+		then:
+		final IllegalStateException exception = thrown()
+		'It\'s not possible to define multiple values!' == exception.message
+	}
+	
+	@Test
+	def 'test flow toMap with no value error'() {
+				
+		when:
+		Task task = createFlow {
+			
+			input { [2, 5, 3, 4] }
+			
+			forEach {
+				toMap {
+					key input.index
+				}
+			}
+		}
+		
+		task.call()
+		
+		then:
+		final IllegalStateException exception = thrown()
+		'Key and Value must be defined!' == exception.message
+	}
+	
+	@Test
+	def 'test flow toMap with no key error'() {
+				
+		when:
+		Task task = createFlow {
+			
+			input { [2, 5, 3, 4] }
+			
+			forEach {
+				toMap {
+					value input.index
+				}
+			}
+		}
+		
+		task.call()
+		
+		then:
+		final IllegalStateException exception = thrown()
+		'Key and Value must be defined!' == exception.message
 	}
 	
 	def getUnreachableDir() {

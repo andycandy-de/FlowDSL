@@ -47,7 +47,7 @@ class ReadTask extends AutoCleanTask implements ReadTaskDelegate, OutputMapperDe
 	public void file(File file) {
 		
 		if (readFile != null) {
-			throw new IllegalStateException('It not allowed to define multiple files!')
+			throw new IllegalStateException('It\'s not allowed to define multiple files!')
 		}
 		
 		readFile = file
@@ -62,7 +62,7 @@ class ReadTask extends AutoCleanTask implements ReadTaskDelegate, OutputMapperDe
 	public void charset(Charset charset) {
 		
 		if (readCharset != null) {
-			throw new IllegalStateException('It not allowed to define multiple charsets!')
+			throw new IllegalStateException('It\'s not allowed to define multiple charsets!')
 		}
 		
 		readCharset = charset

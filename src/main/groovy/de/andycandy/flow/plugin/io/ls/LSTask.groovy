@@ -41,7 +41,7 @@ class LSTask extends AutoCleanTask implements LSTaskDelegate, OutputMapperDelega
 	public void dir(File dir) {
 		
 		if (lsDir != null) {
-			throw new IllegalStateException('It not allowed to define multiple dirs!')
+			throw new IllegalStateException('It\'s not allowed to define multiple dirs!')
 		}
 		
 		lsDir = dir

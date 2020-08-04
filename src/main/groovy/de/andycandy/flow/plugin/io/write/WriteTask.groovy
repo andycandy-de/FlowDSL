@@ -69,7 +69,7 @@ class WriteTask extends AutoCleanTask implements WriteTaskDelegate {
 	public void file(File file) {
 		
 		if (writeFile != null) {
-			throw new IllegalStateException('It not allowed to define multiple files!')
+			throw new IllegalStateException('It\'s not allowed to define multiple files!')
 		}
 		
 		writeFile = file
