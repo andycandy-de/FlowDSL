@@ -93,9 +93,9 @@ class WriteTask extends AutoCleanTask implements WriteTaskDelegate {
 	
 	private boolean tryCreateDirs(File file) {
 		try {
-			return file.mkdirs()
+			return Files.createDirectories(file.toPath())
 		}
-		catch (FileNotFoundException e) { // Linux
+		catch (Exception e) {
 			return false
 		}
 	}
