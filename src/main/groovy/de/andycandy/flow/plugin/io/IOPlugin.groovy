@@ -6,7 +6,9 @@ import de.andycandy.flow.plugin.io.ls.LSTaskDelegate
 import de.andycandy.flow.plugin.io.read.ReadTask
 import de.andycandy.flow.plugin.io.write.WriteTask
 import de.andycandy.flow.task.flow.FlowTask
+import de.andycandy.protect_me.ast.Protect
 
+@Protect(classes = [IOPluginDelegate])
 class IOPlugin implements FlowPlugin, IOPluginDelegate {
 
 	FlowTask flowTask
@@ -41,6 +43,11 @@ class IOPlugin implements FlowPlugin, IOPluginDelegate {
 	}
 	
 	@Override
+	public Object getDelegate() {
+		return this.toProtectedIOPluginDelegate();
+	}
+	
+	@Override
 	public String getName() {
 		return 'io';
 	}
@@ -48,4 +55,5 @@ class IOPlugin implements FlowPlugin, IOPluginDelegate {
 	static IOPlugin create() {
 		return new IOPlugin()
 	}
+
 }

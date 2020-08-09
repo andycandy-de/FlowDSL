@@ -155,22 +155,24 @@ class FlowTask extends AutoCleanTask implements FlowTaskDelegate {
 	
 	@Override
 	public Object propertyMissing(String name) {
-		return findFlowPlugin(name)
+		return getPluginDelegate(name)
+	}
+	
+	protected Object getPluginDelegate(String name) {
+		
+		FlowPlugin flowPlugin = findFlowPlugin(name)
+		flowPlugin.flowTask = this
+		return flowPlugin.delegate	
 	}
 	
 	protected FlowPlugin findFlowPlugin(String name) {
 		
 		if (plugins.containsKey(name)) {
-			
-			plugins[name].flowTask = this
 			return plugins[name]
 		}
 		
 		if (parent != null) {
-			
-			FlowPlugin flowPlugin = parent.findFlowPlugin(name)
-			flowPlugin.flowTask = this
-			return flowPlugin
+			return parent.findFlowPlugin(name)
 		}
 		
 		throw new MissingPropertyException(name)

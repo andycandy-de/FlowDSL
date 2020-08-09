@@ -6,6 +6,7 @@ package de.andycandy.flow
 import org.junit.Test
 
 import de.andycandy.flow.App
+import groovyjarjarpicocli.CommandLine.PicocliException
 import spock.lang.Specification
 
 class AppTest extends Specification {
@@ -16,9 +17,10 @@ class AppTest extends Specification {
 		setup:
 		App app = new App()
 		File file = new File(Thread.currentThread().getContextClassLoader().getResource('de/andycandy/flow/flow.dsl').path)
+		app.scriptFile = file
 		
 		when:
-		def result = app.evaluate(file)
+		def result = app.execute()
 		
 		then:
 		result == [0, 1, 4, 9]
@@ -30,9 +32,10 @@ class AppTest extends Specification {
 		setup:
 		App app = new App()
 		File file = new File(Thread.currentThread().getContextClassLoader().getResource('de/andycandy/flow/flow_no_output.dsl').path)
+		app.scriptFile = file
 		
 		when:
-		def result = app.evaluate(file)
+		def result = app.execute()
 		
 		then:
 		result == null
@@ -41,38 +44,28 @@ class AppTest extends Specification {
 	@Test
 	def "test app exit on usage"() {
 		setup:
-		def systemExit = false
-		def error = ''
+		def printUsage = false
+
 		App app = new App() {
-			@Override
-			public void systemExit() {
-				systemExit = true
-			}
 			
 			@Override
-			public void printErr(String text) {
-				error = text
+			public void printUsage() {
+				printUsage = true
 			}
 		}
 		
 		when:
-		app.start(new String[0])
+		app.call()
 		
 		then:
-		systemExit
-		error == 'Usage: FlowDSL [file]'
+		printUsage
 	}
 	
 	@Test
 	def "test app exit on no file"() {
 		setup:
-		def systemExit = false
 		def error = ''
 		App app = new App() {
-			@Override
-			public void systemExit() {
-				systemExit = true
-			}
 			
 			@Override
 			public void printErr(String text) {
@@ -80,25 +73,25 @@ class AppTest extends Specification {
 			}
 		}
 		def file = new File('dafuq')
+		app.scriptFile = file
 		
 		when:
-		app.start([file.absolutePath].toArray(new String[1]))
+		app.call()
 		
 		then:
-		systemExit
-		error == "File ${file.absolutePath} not exists!"
+		error == "File '${file.absolutePath}' not exists!"
 	}
 	
 	@Test
 	def "test app start"() {
 		setup:
-		def evaluateFile
+		def executed = false
 		
 		App app = new App() {
 			
 			@Override
-			public Object evaluate(File file) {
-				evaluateFile = file
+			public Object execute() {
+				executed = true
 			}
 		}
 		
@@ -106,9 +99,52 @@ class AppTest extends Specification {
 		
 		
 		when:
-		app.start([file.absolutePath].toArray(new String[1]))
+		(new picocli.CommandLine(app)).parseArgs(file.absolutePath)
+		app.call()
 		
 		then:
-		evaluateFile == file
+		app.scriptFile == file
+		executed
+	}
+	
+	
+	@Test
+	def "test app start plugin"() {
+		setup:
+		App app = new App()
+		
+		File pluginJar = new File(Thread.currentThread().getContextClassLoader().getResource('de/andycandy/flow/plugin/FlowDSLPluginTest.jar').path)
+		
+		File file = new File(Thread.currentThread().getContextClassLoader().getResource('de/andycandy/flow/flow_with_plugin.dsl').path)
+		
+		
+		when:
+		(new picocli.CommandLine(app)).parseArgs("-p", pluginJar.absolutePath, file.absolutePath)
+		def result = app.execute()
+		
+		then:
+		app.scriptFile == file
+		app.plugins == [pluginJar]
+		result == 'example'
+	}
+	
+	@Test
+	def "test app start plugin dir"() {
+		setup:
+		App app = new App()
+		
+		File pluginJar = new File(Thread.currentThread().getContextClassLoader().getResource('de/andycandy/flow/plugin/FlowDSLPluginTest.jar').path)
+		
+		File file = new File(Thread.currentThread().getContextClassLoader().getResource('de/andycandy/flow/flow_with_plugin.dsl').path)
+		
+		
+		when:
+		(new picocli.CommandLine(app)).parseArgs("-pd", pluginJar.parentFile.absolutePath, file.absolutePath)
+		def result = app.execute()
+		
+		then:
+		app.scriptFile == file
+		app.pluginDir == pluginJar.parentFile
+		result == 'example'
 	}
 }

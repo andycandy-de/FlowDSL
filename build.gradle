@@ -1,20 +1,44 @@
+
+buildscript {
+	
+	repositories {
+		
+		mavenCentral()
+	}
+	
+	dependencies {
+		
+		classpath "com.anatawa12:compile-time-constant:1.0.0"
+	}
+}
+
 plugins {
 	
     id 'groovy'
 
     id 'application'
+	
+	id 'maven-publish'
 }
+
+apply plugin: 'com.anatawa12.compile-time-constant'
 
 ext {
 	
+	projectName = rootProject.name
+	projectVersion = '1.0-SNAPSHOT'
+	
 	groovyVersion = '3.0.4'
 	spockVersion = '2.0-M3-groovy-3.0'
-	protectMeVersion = '1.1'
+	protectMeVersion = '1.2'
+	picocliVersion = '4.5.0'
 }
 
 repositories {
 	
 	jcenter()
+	
+	mavenLocal()
 }
 
 dependencies {
@@ -22,6 +46,8 @@ dependencies {
     implementation "org.codehaus.groovy:groovy-all:$groovyVersion"
 	
 	implementation "com.github.andycandy-de:protect-me-ast:$protectMeVersion"
+	
+	implementation "info.picocli:picocli:$picocliVersion"
 
     testImplementation "org.spockframework:spock-core:$spockVersion"
 }
@@ -29,4 +55,47 @@ dependencies {
 application {
 
     mainClassName = 'de.andycandy.flow.App'
+}
+
+createCompileTimeConstant {
+	
+	constantsClass = "de.andycandy.flow.Constants"
+	values VERSION: projectVersion, NAME: projectName
+}
+
+
+publishing {
+	
+    publications {
+		
+        mavenJava(MavenPublication) {
+			
+			from components.java
+			
+            pom {
+                name = projectName
+				version = projectVersion
+				groupId = 'com.github.andycandy-de'
+                description = 'A simple Flow DSL'
+                url = 'https://github.com/andycandy-de/FlowDSL'
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'http://www.opensource.org/licenses/mit-license.php'
+                    }
+                }
+                developers {
+                    developer {
+                        name = 'Andreas Hoffmann'
+                        email = 'andyh89@freenet.de'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/andycandy-de/FlowDSL.git'
+                    developerConnection = 'scm:git:https://github.com/andycandy-de/FlowDSL.git'
+                    url = 'https://github.com/andycandy-de/FlowDSL'
+                }
+            }
+        }
+    }
 }
