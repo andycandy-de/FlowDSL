@@ -13,12 +13,13 @@ import spock.lang.Specification
 
 class AppTest extends Specification {
     
-	
 	@Test
 	def "test app evaluate"() {
 		setup:
+		def tempDir = createTemp('de/andycandy/flow/flow.dsl')
+		
 		App app = new App()
-		File file = new File(Thread.currentThread().getContextClassLoader().getResource('de/andycandy/flow/flow.dsl').path)
+		File file = new File(tempDir.toFile(), 'flow.dsl')
 		app.scriptFile = file
 		
 		when:
@@ -26,14 +27,18 @@ class AppTest extends Specification {
 		
 		then:
 		result == [0, 1, 4, 9]
+		
+		cleanup:
+		deleteTempDir(tempDir)
 	}
-	
 	
 	@Test
 	def "test app evaluate no output"() {
 		setup:
+		def tempDir = createTemp('de/andycandy/flow/flow_no_output.dsl')
+		
 		App app = new App()
-		File file = new File(Thread.currentThread().getContextClassLoader().getResource('de/andycandy/flow/flow_no_output.dsl').path)
+		File file = new File(tempDir.toFile(), 'flow_no_output.dsl')
 		app.scriptFile = file
 		
 		when:
@@ -41,6 +46,9 @@ class AppTest extends Specification {
 		
 		then:
 		result == null
+		
+		cleanup:
+		deleteTempDir(tempDir)
 	}
 	
 	@Test
@@ -66,6 +74,7 @@ class AppTest extends Specification {
 	@Test
 	def "test app exit on no file"() {
 		setup:
+		def tempDir = createTemp()
 		def error = ''
 		App app = new App() {
 			
@@ -74,7 +83,7 @@ class AppTest extends Specification {
 				error = text
 			}
 		}
-		def file = new File('dafuq')
+		File file = new File(tempDir.toFile(), 'dafuq')
 		app.scriptFile = file
 		
 		when:
@@ -82,11 +91,16 @@ class AppTest extends Specification {
 		
 		then:
 		error == "File '${file.absolutePath}' not exists!"
+		
+		cleanup:
+		deleteTempDir(tempDir)
 	}
 	
 	@Test
 	def "test app start"() {
 		setup:
+		setup:
+		def tempDir = createTemp('de/andycandy/flow/flow_no_output.dsl')
 		def executed = false
 		
 		App app = new App() {
@@ -97,7 +111,7 @@ class AppTest extends Specification {
 			}
 		}
 		
-		File file = new File(Thread.currentThread().getContextClassLoader().getResource('de/andycandy/flow/flow_no_output.dsl').path)
+		File file = new File(tempDir.toFile(), 'flow_no_output.dsl')
 		
 		
 		when:
@@ -107,6 +121,9 @@ class AppTest extends Specification {
 		then:
 		app.scriptFile == file
 		executed
+		
+		cleanup:
+		deleteTempDir(tempDir)
 	}
 	
 	

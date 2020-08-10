@@ -186,6 +186,16 @@ class FlowDSLTest extends Specification {
 	
 	@Test	
 	def 'test flow with plugin write'() {
+		setup:
+		def tmpDir = createTemp()
+		def testFile = new File(tmpDir.toFile(), 'test.txt')
+		def content = '''
+				Das ist der Output Text
+				über meherere Zeilen
+				TEST
+
+				'''
+		
 		when:
 		Task task = createFlow {
 			
@@ -194,18 +204,13 @@ class FlowDSLTest extends Specification {
 			}
 			
 			input {
-				'''
-				Das ist der Output Text
-				�ber meherere Zeilen
-				TEST
-
-				'''
+				content
 			}
 			
 			flow {
 				
 				io.write {						
-					file 'test.txt'
+					file testFile.absolutePath
 				}
 			}
 		}
@@ -213,14 +218,25 @@ class FlowDSLTest extends Specification {
 		task.call()
 		
 		then:
-		(new File('test.txt')).exists()
+		testFile.exists()
+		testFile.text == content
 		
 		cleanup:
-		(new File('test.txt')).delete()
+		deleteTempDir(tmpDir)
 	}
 	
 	@Test	
 	def 'test flow with plugin write no override'() {
+		setup:
+		def tmpDir = createTemp()
+		def testFile = new File(tmpDir.toFile(), 'test.txt')
+		def content = '''
+				Das ist der Output Text
+				über meherere Zeilen
+				TEST
+
+				'''
+		
 		when:
 		Task task = createFlow {
 			
@@ -229,20 +245,15 @@ class FlowDSLTest extends Specification {
 			}
 			
 			input {
-				'''
-				Das ist der Output Text
-				�ber meherere Zeilen
-				TEST
-
-				'''
+				content
 			}
 			
 			io.write {
-				file 'test.txt'
+				file testFile.absolutePath
 			}
 			
 			io.write {
-				file 'test.txt'
+				file testFile.absolutePath
 			}
 		}
 		
@@ -250,14 +261,26 @@ class FlowDSLTest extends Specification {
 		
 		then:
 		final IllegalStateException exception = thrown()
-		'The file \'test.txt\' already exists!' == exception.message
+		"The file '${testFile.absolutePath}' already exists!" == exception.message
+		testFile.exists()
+		testFile.text == content
 		
 		cleanup:
-		(new File('test.txt')).delete()
+		deleteTempDir(tmpDir)
 	}
 	
 	@Test
 	def 'test flow with plugin write override'() {
+		setup:
+		def tmpDir = createTemp()
+		def testFile = new File(tmpDir.toFile(), 'test.txt')
+		def content = '''
+				Das ist der Output Text
+				über meherere Zeilen
+				TEST
+
+				'''
+		
 		when:
 		Task task = createFlow {
 			
@@ -265,30 +288,28 @@ class FlowDSLTest extends Specification {
 				register IOPlugin.create()
 			}
 			
-			input { 'testcontent' }
+			input { content }
 			
 			io.write {
-				file 'test.txt'
+				file testFile.absolutePath
 			}
 			
 			input { 'testcontent2' }
 			
 			io.write {
 				override()
-				file 'test.txt'
+				file testFile.absolutePath
 			}
 		}
 		
 		task.call()
-		
-		File testFile = new File('test.txt')
 		
 		then:
 		testFile.exists()
 		'testcontent2' == testFile.text
 		
 		cleanup:
-		testFile.delete()
+		deleteTempDir(tmpDir)
 	}
 	
 	@Test
@@ -428,10 +449,17 @@ class FlowDSLTest extends Specification {
 	
 	@Test
 	def 'test plugin with name'() {
-		when:
+		setup:
+		def tmpDir = createTemp()
+		def testFile = new File(tmpDir.toFile(), 'test.txt')
+		def content = '''
+				Das ist der Output Text
+				über meherere Zeilen
+				TEST
+
+				'''
 		
-		def writeFile = new File('test.txt')
-		def fileText = 'AnyText'
+		when:
 		
 		Task task = createFlow {
 			
@@ -440,22 +468,22 @@ class FlowDSLTest extends Specification {
 				register IOPlugin.create() withName 'data'
 			}
 			
-			input { fileText }
+			input { content }
 			
 			data.write {
 				
-				file writeFile
+				file testFile
 			}
 		}
 		
 		task.call()
 		
 		then:
-		writeFile.exists()
-		fileText == writeFile.text
+		testFile.exists()
+		content == testFile.text
 		
 		cleanup:
-		writeFile.delete()
+		deleteTempDir(tmpDir)
 	}
 	
 	@Test
@@ -490,13 +518,20 @@ class FlowDSLTest extends Specification {
 	
 	@Test
 	def 'test parent is a file'() {
+		setup:
+		def tmpDir = createTemp()
+		def parentFile = new File(tmpDir.toFile(), 'parent')
+		def testFile = new File(parentFile, 'test.txt')
+		def content = '''
+				Das ist der Output Text
+				über meherere Zeilen
+				TEST
+
+				'''
+		
 		when:
 		
-		def writeFile = new File('test/test.txt')
-		def parent = new File('test')
-		def fileText = 'AnyText'
-		
-		parent.createNewFile()
+		parentFile.createNewFile()
 		
 		Task task = createFlow {
 			
@@ -505,11 +540,11 @@ class FlowDSLTest extends Specification {
 				register IOPlugin.create() withName 'data'
 			}
 			
-			input { fileText }
+			input { content }
 			
 			data.write {
 				
-				file writeFile
+				file testFile
 			}
 		}
 		
@@ -517,10 +552,10 @@ class FlowDSLTest extends Specification {
 		
 		then:
 		final IllegalStateException exception = thrown()
-		'\'test\' is not a directory!' == exception.message
+		"'${parentFile.absolutePath}' is not a directory!" == exception.message
 		
 		cleanup:
-		parent.delete()
+		deleteTempDir(tmpDir)
 	}
 	
 	@Test
@@ -554,9 +589,11 @@ class FlowDSLTest extends Specification {
 	
 	@Test
 	def 'test create parent'() {
-		when:
+		setup:
+		def tmpDir = createTemp()
+		def parentFile = new File(tmpDir.toFile(), 'parent')
 		
-		def parentFile = new File('test')
+		when:
 		def writeFile = new File(parentFile, 'test.txt')
 		def fileText = 'AnyText'
 		
@@ -583,8 +620,7 @@ class FlowDSLTest extends Specification {
 		fileText == writeFile.text
 		
 		cleanup:
-		writeFile.delete()
-		parentFile.delete()
+		deleteTempDir(tmpDir)
 	}
 	
 	@Test
