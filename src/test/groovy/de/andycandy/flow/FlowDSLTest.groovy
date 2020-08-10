@@ -1,6 +1,7 @@
 package de.andycandy.flow
 
 import static de.andycandy.flow.FlowDSL.createFlow
+import static de.andycandy.flow.TestUtil.*
 
 import java.nio.file.Files
 import java.nio.file.Path
@@ -8,9 +9,9 @@ import java.nio.file.Paths
 
 import org.junit.Test
 
+import de.andycandy.flow.plugin.io.IOPlugin
 import de.andycandy.flow.task.Task
 import spock.lang.Specification
-import de.andycandy.flow.plugin.io.IOPlugin
 
 class FlowDSLTest extends Specification {
 	
@@ -149,7 +150,7 @@ class FlowDSLTest extends Specification {
 	@Test
 	def 'test flow with plugin'() {
 		setup:
-		def temp = createTemp('de/andycandy/flow/dir')
+		def temp = createTempDirWithTestData()
 		
 		when:
 		Task task = createFlow {
@@ -294,7 +295,7 @@ class FlowDSLTest extends Specification {
 	def 'test flow with plugin read'() {
 		
 		setup:
-		def temp = createTemp('de/andycandy/flow/dir')
+		def temp = createTempDirWithTestData()
 		
 		when:
 		Task task = createFlow {
@@ -832,7 +833,7 @@ class FlowDSLTest extends Specification {
 	def 'test read file'() {
 		
 		setup:
-		def temp = createTemp('de/andycandy/flow/dir')
+		def temp = createTempDirWithTestData()
 		
 		when:
 		Task task = createFlow {
@@ -926,7 +927,7 @@ class FlowDSLTest extends Specification {
 	def 'test read with charset'() {
 		
 		setup:
-		def temp = createTemp('de/andycandy/flow/dir')
+		def temp = createTempDirWithTestData()
 		
 		when:
 		Task task = createFlow {
@@ -1013,7 +1014,7 @@ class FlowDSLTest extends Specification {
 	def 'test ls with output mapper'() {
 		
 		setup:
-		def temp = createTemp('de/andycandy/flow/dir')
+		def temp = createTempDirWithTestData()
 		def expected = [:]
 		expected[temp.toString()] = ['test1', 'test2', 'test3']
 				
@@ -1047,7 +1048,7 @@ class FlowDSLTest extends Specification {
 	def 'test read with output mapper'() {
 		
 		setup:
-		def temp = createTemp('de/andycandy/flow/dir')
+		def temp = createTempDirWithTestData()
 				
 		when:
 		Task task = createFlow {
@@ -1294,43 +1295,7 @@ class FlowDSLTest extends Specification {
 		'Key and Value must be defined!' == exception.message
 	}
 	
-	def getUnreachableDir() {
-		
-		if (System.getProperty("os.name").startsWithIgnoreCase('windows')) {
-			return new File('ABC:/test/')
-		}
-		else {
-			return new File('/root/anyDir/')
-		}
-	}
-	
-	def createTemp(String path) {
-		
-		Path temp = Files.createTempDirectory('test')
-		Files.createDirectories(temp)
-		
-		def files = (new File(Thread.currentThread().getContextClassLoader().getResource(path).path)).listFiles()
-		
-		files.each {
-			Files.copy(it.toPath(), Paths.get(temp.toString(), it.name))
-		}
-		
-		return temp
-	}
-	
-	def createTemp() {
-		
-		Path temp = Files.createTempDirectory('test')
-		Files.createDirectories(temp)
-		
-		return temp
-	}
-	
-	def deleteTempDir(Path temp) {
-		
-		Files.walk(temp) \
-			.sorted(Comparator.reverseOrder()) \
-			.map { it.toFile() } \
-			.forEach { it.delete() }
+	def createTempDirWithTestData() {
+		return createTemp('de/andycandy/flow/dir/test1', 'de/andycandy/flow/dir/test2', 'de/andycandy/flow/dir/test3')
 	}
 }

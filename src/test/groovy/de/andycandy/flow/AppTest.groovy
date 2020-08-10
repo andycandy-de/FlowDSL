@@ -3,6 +3,8 @@
  */
 package de.andycandy.flow
 
+import static de.andycandy.flow.TestUtil.*
+
 import org.junit.Test
 
 import de.andycandy.flow.App
@@ -111,9 +113,10 @@ class AppTest extends Specification {
 	@Test
 	def "test app start plugin"() {
 		setup:
+		def tmpPath = createTemp('de/andycandy/flow/plugin/dir/FlowDSLPluginTest.jar')
 		App app = new App()
 		
-		File pluginJar = new File(Thread.currentThread().getContextClassLoader().getResource('de/andycandy/flow/plugin/FlowDSLPluginTest.jar').path)
+		File pluginJar = new File(tmpPath.toFile(), 'FlowDSLPluginTest.jar')
 		
 		File file = new File(Thread.currentThread().getContextClassLoader().getResource('de/andycandy/flow/flow_with_plugin.dsl').path)
 		
@@ -126,25 +129,29 @@ class AppTest extends Specification {
 		app.scriptFile == file
 		app.plugins == [pluginJar]
 		result == 'example'
+		
+		cleanup:
+		deleteTempDir(tmpPath)
 	}
 	
 	@Test
 	def "test app start plugin dir"() {
 		setup:
+		def tmpPath = createTemp('de/andycandy/flow/plugin/dir/FlowDSLPluginTest.jar')
 		App app = new App()
 		
-		File pluginJar = new File(Thread.currentThread().getContextClassLoader().getResource('de/andycandy/flow/plugin/FlowDSLPluginTest.jar').path)
-		
 		File file = new File(Thread.currentThread().getContextClassLoader().getResource('de/andycandy/flow/flow_with_plugin.dsl').path)
-		
-		
+			
 		when:
-		(new picocli.CommandLine(app)).parseArgs("-pd", pluginJar.parentFile.absolutePath, file.absolutePath)
+		(new picocli.CommandLine(app)).parseArgs("-pd", tmpPath.toString(), file.absolutePath)
 		def result = app.execute()
 		
 		then:
 		app.scriptFile == file
-		app.pluginDir == pluginJar.parentFile
+		app.pluginDir == tmpPath.toFile()
 		result == 'example'
+		
+		cleanup:
+		deleteTempDir(tmpPath)
 	}
 }
