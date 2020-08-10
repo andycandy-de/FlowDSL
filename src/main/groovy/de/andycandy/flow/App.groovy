@@ -137,7 +137,7 @@ class App implements Callable<Integer> {
 			return this.getClass().getClassLoader()
 		}
 		
-		return new URLClassLoader('PluginClassloader', (URL[])urls.toArray(), this.getClass().getClassLoader())
+		return new URLClassLoader((URL[])urls.toArray(), this.getClass().getClassLoader())
 	}
 	
 	List<URL> getUrlList(List<File> fileList) {
