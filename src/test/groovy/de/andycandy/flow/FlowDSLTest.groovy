@@ -160,7 +160,7 @@ class FlowDSLTest extends Specification {
 			}
 			
 			plugins {
-				register IOPlugin.create()
+				register IOPlugin
 			}
 			
 			io.ls {
@@ -200,7 +200,7 @@ class FlowDSLTest extends Specification {
 		Task task = createFlow {
 			
 			plugins {
-				register IOPlugin.create()
+				register IOPlugin
 			}
 			
 			input {
@@ -241,7 +241,7 @@ class FlowDSLTest extends Specification {
 		Task task = createFlow {
 			
 			plugins {
-				register IOPlugin.create()
+				register IOPlugin
 			}
 			
 			input {
@@ -285,7 +285,7 @@ class FlowDSLTest extends Specification {
 		Task task = createFlow {
 			
 			plugins {
-				register IOPlugin.create()
+				register IOPlugin
 			}
 			
 			input { content }
@@ -322,7 +322,7 @@ class FlowDSLTest extends Specification {
 		Task task = createFlow {
 			
 			plugins {
-				register IOPlugin.create()
+				register IOPlugin
 			}
 			
 			input {
@@ -465,7 +465,7 @@ class FlowDSLTest extends Specification {
 			
 			plugins {
 				
-				register IOPlugin.create() withName 'data'
+				register IOPlugin withName 'data'
 			}
 			
 			input { content }
@@ -497,7 +497,7 @@ class FlowDSLTest extends Specification {
 			
 			plugins {
 				
-				register IOPlugin.create() withName 'data'
+				register IOPlugin withName 'data'
 			}
 			
 			input { fileText }
@@ -537,7 +537,7 @@ class FlowDSLTest extends Specification {
 			
 			plugins {
 				
-				register IOPlugin.create() withName 'data'
+				register IOPlugin withName 'data'
 			}
 			
 			input { content }
@@ -569,7 +569,7 @@ class FlowDSLTest extends Specification {
 			
 			plugins {
 				
-				register IOPlugin.create() withName 'data'
+				register IOPlugin withName 'data'
 			}
 			
 			input { fileText }
@@ -601,7 +601,7 @@ class FlowDSLTest extends Specification {
 			
 			plugins {
 				
-				register IOPlugin.create() withName 'data'
+				register IOPlugin withName 'data'
 			}
 			
 			input { fileText }
@@ -848,7 +848,7 @@ class FlowDSLTest extends Specification {
 						
 			plugins {
 				
-				register IOPlugin.create()
+				register IOPlugin
 			}
 			
 			io.read {
@@ -876,7 +876,7 @@ class FlowDSLTest extends Specification {
 						
 			plugins {
 				
-				register IOPlugin.create()
+				register IOPlugin
 			}
 			
 			io.read {
@@ -970,7 +970,7 @@ class FlowDSLTest extends Specification {
 						
 			plugins {
 				
-				register IOPlugin.create()
+				register IOPlugin
 			}
 			
 			io.read {
@@ -1000,7 +1000,7 @@ class FlowDSLTest extends Specification {
 						
 			plugins {
 				
-				register IOPlugin.create()
+				register IOPlugin
 			}
 			
 			io.read {
@@ -1029,7 +1029,7 @@ class FlowDSLTest extends Specification {
 						
 			plugins {
 				
-				register IOPlugin.create()
+				register IOPlugin
 			}
 			
 			io.ls {
@@ -1059,7 +1059,7 @@ class FlowDSLTest extends Specification {
 			
 			input { temp.toString() }
 			
-			plugins { register IOPlugin.create() }
+			plugins { register IOPlugin }
 			
 			io.ls { dir input } {
 				
@@ -1091,7 +1091,7 @@ class FlowDSLTest extends Specification {
 			
 			input { temp.toString() }
 			
-			plugins { register IOPlugin.create() }
+			plugins { register IOPlugin }
 			
 			io.ls { dir input }
 			
@@ -1132,7 +1132,7 @@ class FlowDSLTest extends Specification {
 		when:
 		Task task = createFlow {
 			
-			plugins { register IOPlugin.create() }
+			plugins { register IOPlugin }
 			
 			input { 'testText' }
 			
@@ -1163,7 +1163,7 @@ class FlowDSLTest extends Specification {
 		when:
 		Task task = createFlow {
 			
-			plugins { register IOPlugin.create() }
+			plugins { register new IOPlugin() }
 			
 			input { 'testText' }
 			

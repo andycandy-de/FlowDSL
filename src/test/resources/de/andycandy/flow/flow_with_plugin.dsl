@@ -1,7 +1,5 @@
 createFlow {
-	plugins {
-		register ExamplePlugin.create()
-	}
+	plugins { register ExamplePlugin }
 	
 	example.example()
 }

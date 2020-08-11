@@ -161,8 +161,7 @@ class FlowTask extends AutoCleanTask implements FlowTaskDelegate {
 	protected Object getPluginDelegate(String name) {
 		
 		FlowPlugin flowPlugin = findFlowPlugin(name)
-		flowPlugin.flowTask = this
-		return flowPlugin.delegate	
+		return flowPlugin.createDelegate(this)	
 	}
 	
 	protected FlowPlugin findFlowPlugin(String name) {

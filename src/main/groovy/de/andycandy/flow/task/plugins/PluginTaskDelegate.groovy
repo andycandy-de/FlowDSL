@@ -6,4 +6,5 @@ interface PluginTaskDelegate {
 	
 	PluginRegisterName register(FlowPlugin flowPlugin)
 	
+	PluginRegisterName register(Class<? extends FlowPlugin> flowPluginClass)
 }

@@ -110,6 +110,10 @@ class App implements Callable<Integer> {
 			return false
 		}
 		
+		if (isInnerClass(jarEntry)) {
+			return false
+		}
+		
 		Class clazz = classLoaderWithPlugins.loadClass(getClassName(jarEntry))
 		if (!clazz.isAnnotationPresent(AutoImportPlugin)) {
 			return false
@@ -150,7 +154,11 @@ class App implements Callable<Integer> {
 	String getClassName(JarEntry jarEntry) {
 		
 		String className = jarEntry.name.substring(0, jarEntry.name.length() - '.class'.length());
-		return className.replace('/', '.').replace('$', '.');
+		return className.replace('/', '.');
+	}
+	
+	boolean isInnerClass(JarEntry jarEntry) {
+		return getClassName(jarEntry).contains('$')
 	}
 	
 	void printUsage() {

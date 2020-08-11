@@ -29,8 +29,12 @@ class PluginTask extends AutoCleanTask implements PluginTaskDelegate {
 		
 		pluginRegisterList.each {
 			flowTask.plugins[it.name] = it.flowPlugin
-			it.flowPlugin.flowTask = flowTask
 		}
+	}
+	
+	@Override
+	public PluginRegisterName register(Class<? extends FlowPlugin> flowPluginClass) {
+		register(flowPluginClass.getDeclaredConstructor().newInstance())
 	}
 	
 	@Protect

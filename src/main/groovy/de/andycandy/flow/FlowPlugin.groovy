@@ -6,7 +6,5 @@ interface FlowPlugin {
 	
 	String getName()
 	
-	Object getDelegate()
-	
-	void setFlowTask(FlowTask flowTask)
+	Object createDelegate(FlowTask flowTask)
 }
