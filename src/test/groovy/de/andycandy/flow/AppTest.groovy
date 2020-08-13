@@ -171,4 +171,25 @@ class AppTest extends Specification {
 		cleanup:
 		deleteTempDir(tmpPath)
 	}
+	
+	@Test
+	def "test app start plugin groovy"() {
+		setup:
+		def tmpPath = createTemp('de/andycandy/flow/plugin/script_plugin.script', 'de/andycandy/flow/flow_with_plugin_script.dsl')
+		App app = new App()
+		
+		File plugin = new File(tmpPath.toFile(), 'script_plugin.script')
+		File file = new File(tmpPath.toFile(), 'flow_with_plugin_script.dsl')
+			
+		when:
+		(new picocli.CommandLine(app)).parseArgs("-p", plugin.absolutePath, file.absolutePath)
+		def result = app.execute()
+		
+		then:
+		app.scriptFile == file
+		result == ['Hello AnyName1', 'anyOutput','Hello AnyName3']
+		
+		cleanup:
+		deleteTempDir(tmpPath)
+	}
 }

@@ -18,8 +18,8 @@ class App implements Callable<Integer> {
 	@picocli.CommandLine.Option(names = [ '-pd', '--pluginDir' ], paramLabel = "Plugin Directory", description = 'Directory with Plugins')
 	File pluginDir
 	
-	@picocli.CommandLine.Option(names = [ '-p', '--plugins' ], paramLabel = "Plugins", description = 'Plugins')
-	List<File> plugins
+	@picocli.CommandLine.Option(names = [ '-p', '--plugin' ], paramLabel = "Plugin", description = 'Plugin')
+	List<File> plugins = []
 	
 	@Override
 	public Integer call() throws Exception {
@@ -45,7 +45,14 @@ class App implements Callable<Integer> {
 	
 	Object execute() {
 		
+		if (pluginDir != null) {
+			pluginDir.listFiles().each { plugins << it }
+		}
+		
 		ClassLoader classLoaderWithPlugins = createClassLoaderWithPlugins()
+		
+		PluginRegistry pluginRegistry = new PluginRegistry()
+		findPluginsInGroovyScripts(pluginRegistry)
 		
 		ImportCustomizer importCustomizer = new ImportCustomizer()
 		importCustomizer.addStaticImport('de.andycandy.flow.FlowDSL', 'createFlow')
@@ -58,7 +65,7 @@ class App implements Callable<Integer> {
 		CompilerConfiguration compilerConfiguration = new CompilerConfiguration()
 		compilerConfiguration.addCompilationCustomizers(importCustomizer)
 		
-		GroovyShell groovyShell = new GroovyShell(classLoaderWithPlugins, new Binding(), compilerConfiguration)
+		GroovyShell groovyShell = new GroovyShell(classLoaderWithPlugins, new Binding([pluginRegistry: pluginRegistry]), compilerConfiguration)
 		
 		Task task = groovyShell.evaluate(scriptFile)
 		
@@ -71,15 +78,54 @@ class App implements Callable<Integer> {
 		return null
 	}
 	
+	void findPluginsInGroovyScripts(PluginRegistry pluginRegistry) {
+		
+		if (plugins.isEmpty()) {
+			return
+		}
+		
+		ScriptPluginHelper scriptPluginHelper = new ScriptPluginHelper()
+		scriptPluginHelper.pluginRegistry = pluginRegistry
+		
+		ImportCustomizer importCustomizer = new ImportCustomizer()
+		importCustomizer.addStaticImport('de.andycandy.flow.FlowDSL', 'createFlow')
+		importCustomizer.addImports('de.andycandy.flow.task.Task', 'de.andycandy.flow.task.AutoCleanTask', 'de.andycandy.flow.task.TaskUtil')
+		importCustomizer.addStaticImport('de.andycandy.flow.DynamicCreator', 'createDynamic')
+		
+		CompilerConfiguration compilerConfiguration = new CompilerConfiguration()
+		compilerConfiguration.addCompilationCustomizers(importCustomizer)
+		
+		GroovyShell groovyShell = new GroovyShell(this.getClass().getClassLoader(), new Binding([plugin: scriptPluginHelper]), compilerConfiguration)
+		
+		plugins.findAll { isPluginScriptFile(it) }.each { 
+			groovyShell.evaluate(it)
+		}
+	}
+	
+	boolean isPluginScriptFile(File file) {
+		
+		if (!file.isFile()) {
+			return false
+		}
+		
+		return endsWithAny(file.name, '.script', '.groovy', 'plugin')
+	}
+	
+	boolean endsWithAny(String name, String... suffix) {
+		for (s in suffix) {
+			if (name.endsWith(s)) {
+				return true
+			}
+		}
+		return false
+	}
+	
 	List<String> getPluginImports(ClassLoader classLoaderWithPlugins) {
 		
 		List<String> list = []
 		
-		if (pluginDir != null) {			
-			pluginDir.listFiles().each { list += getPluginImports(classLoaderWithPlugins, it) }
-		}
-		if (plugins != null && !plugins.isEmpty()) {			
-			plugins.each { list += getPluginImports(classLoaderWithPlugins, it) }
+		if (!plugins.isEmpty()) {			
+			plugins.findAll { it.name.endsWith('.jar') }.each { list += getPluginImports(classLoaderWithPlugins, it) }
 		}
 		
 		return list
@@ -129,11 +175,7 @@ class App implements Callable<Integer> {
 	ClassLoader createClassLoaderWithPlugins() {
 		
 		List<URL> urls = []
-		if (pluginDir != null) {
-			urls += getUrlList(pluginDir.listFiles().toList())
-			
-		}
-		if (plugins != null && !plugins.isEmpty()) {
+		if (!plugins.isEmpty()) {
 			urls += getUrlList(plugins)
 		}
 		
@@ -147,7 +189,9 @@ class App implements Callable<Integer> {
 	List<URL> getUrlList(List<File> fileList) {
 		
 		List<URL> urlList = []
-		fileList.each { urlList <<  it.toURI().toURL() }
+		fileList
+			.findAll { it.name.endsWith('.jar') }
+			.each { urlList <<  it.toURI().toURL() }
 		return urlList
 	}
 	

@@ -26,8 +26,8 @@ import de.andycandy.protect_me.ast.Protect
 import groovyjarjarantlr4.v4.parse.ANTLRParser.finallyClause_return
 import groovyjarjarantlr4.v4.parse.ANTLRParser.parserRule_return
 
-@Protect(classes = [FlowTaskDelegate])
-class FlowTask extends AutoCleanTask implements FlowTaskDelegate {
+@Protect(classes = [FlowTaskDelegate, TaskExecutor])
+class FlowTask extends AutoCleanTask implements FlowTaskDelegate, TaskExecutor {
 	
 	FlowTask parent
 	
@@ -161,7 +161,7 @@ class FlowTask extends AutoCleanTask implements FlowTaskDelegate {
 	protected Object getPluginDelegate(String name) {
 		
 		FlowPlugin flowPlugin = findFlowPlugin(name)
-		return flowPlugin.createDelegate(this)	
+		return flowPlugin.createDelegate(this.toProtectedTaskExecutor())	
 	}
 	
 	protected FlowPlugin findFlowPlugin(String name) {

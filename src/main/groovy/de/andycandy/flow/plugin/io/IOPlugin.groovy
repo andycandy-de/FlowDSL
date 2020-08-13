@@ -6,6 +6,7 @@ import de.andycandy.flow.plugin.io.ls.LSTaskDelegate
 import de.andycandy.flow.plugin.io.read.ReadTask
 import de.andycandy.flow.plugin.io.write.WriteTask
 import de.andycandy.flow.task.flow.FlowTask
+import de.andycandy.flow.task.flow.TaskExecutor
 import de.andycandy.protect_me.ast.Protect
 import groovy.transform.TupleConstructor
 
@@ -17,13 +18,20 @@ class IOPlugin implements FlowPlugin {
 	}
 	
 	@Override
-	public Object createDelegate(FlowTask flowTask) {
-		Plugin.create(flowTask)
+	public Object createDelegate(TaskExecutor taskExecutor) {
+		createProtected(taskExecutor)
 	}
 	
-	static class Plugin implements IOPluginDelegate {
+	@Protect
+	IOPluginDelegate createProtected(TaskExecutor taskExecutor) {
+		PluginExecution pluginExecution = new PluginExecution()
+		pluginExecution.taskExecutor = taskExecutor
+		return pluginExecution
+	}
+	
+	class PluginExecution implements IOPluginDelegate {
 		
-		private FlowTask flowTask
+		private TaskExecutor taskExecutor
 			
 		@Override
 		public void ls(Closure closure, Closure outputMapper = null) {
@@ -32,7 +40,7 @@ class IOPlugin implements FlowPlugin {
 			lsTask.closure = closure
 			lsTask.outputMapper = outputMapper
 			
-			flowTask.task(lsTask)
+			taskExecutor.task(lsTask)
 		}
 		
 		@Override
@@ -41,7 +49,7 @@ class IOPlugin implements FlowPlugin {
 			WriteTask writeTask = new WriteTask()
 			writeTask.closure = closure
 			
-			flowTask.task(writeTask)
+			taskExecutor.task(writeTask)
 		}
 		
 		@Override
@@ -51,14 +59,7 @@ class IOPlugin implements FlowPlugin {
 			readTask.closure = closure
 			readTask.outputMapper = outputMapper
 			
-			flowTask.task(readTask)
-		}
-		
-		@Protect
-		static IOPluginDelegate create(FlowTask flowTask) {
-			def plugin = new Plugin()
-			plugin.flowTask = flowTask
-			return plugin
+			taskExecutor.task(readTask)
 		}
 	}
 }

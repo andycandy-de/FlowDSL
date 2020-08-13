@@ -1,0 +1,57 @@
+
+plugin.create('script') {
+
+	def count = 0
+	
+	return plugin.createDynamic {
+	
+		method anyTask: {
+		
+			createFlow {
+				code { output = 'anyOutput' }
+			}
+		}
+		
+		method sayHello: {
+		
+			++count
+			println "Hello No. $count"
+			
+			plugin.passInputToOutput()
+		}
+		
+		method sayHelloToOutput: { Closure closure ->
+		
+			MyNewTask myNewTask = new MyNewTask()
+			myNewTask.closure = closure
+			
+			return myNewTask
+		}
+	}
+}
+
+class MyNewTask extends AutoCleanTask {
+
+	Closure closure
+	
+	String name = 'UNKOWN'
+
+	@Override
+	public void callWithClean() {
+	
+		closure.delegate = createDynamic {
+		
+			method name: { String s -> name = s }
+			getter input: { -> input }
+			boolGetter hasInput: { -> hasInput }
+			boolGetter hasOutput: { -> hasOutput }
+			getter output: { -> output }
+			setter output: { output = it }
+		}
+		closure.resolveStrategy = Closure.DELEGATE_FIRST
+	
+		closure.call()
+		
+		output = "Hello $name"
+	}
+}
