@@ -160,4 +160,35 @@ class ScriptPluginHelperTest extends Specification {
 		dynamic.boolGetter
 		'anyVal' == dynamic.getter
 	}
+	
+	
+	@Test
+	def 'test create dynamic with interface'() {
+		setup:
+		def plugin = new ScriptPluginHelper()
+		def vals = []
+		
+		def obj = plugin.createDynamic {
+			
+			method anyMethod: { vals << it }
+		}
+		
+		when:
+		obj.anyMethod(321)
+		
+		AnyClass anyObj = obj as AnyClass
+		def result = anyObj.anyMethod('test')
+		anyObj.anyMethod(123)
+		
+		then:
+		result == null
+		[321, 'test'] == vals
+		final MissingMethodException exception = thrown()
+	}
+	
+	interface AnyClass {
+		
+		void anyMethod(String s)
+		
+	}
 }
