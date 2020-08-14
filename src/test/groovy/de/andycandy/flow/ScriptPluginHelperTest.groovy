@@ -1,5 +1,6 @@
 package de.andycandy.flow
 
+import de.andycandy.flow.task.Task
 import org.junit.Test
 
 import spock.lang.Specification
@@ -184,6 +185,52 @@ class ScriptPluginHelperTest extends Specification {
 		result == null
 		[321, 'test'] == vals
 		final MissingMethodException exception = thrown()
+	}
+	
+	@Test
+	def 'test plugin with createTask'() {
+		setup:
+		def registry = new PluginRegistry()
+		def plugin = new ScriptPluginHelper(registry)
+		def vals = []
+		
+		plugin.create('testPlugin') {
+			
+			return plugin.createDynamic { 
+				method doStuff: { Closure closure ->
+					
+					plugin.createTask {
+						
+						def name = null
+					
+						closure.delegate = plugin.createDynamic {
+							getter input: { input }
+							method name: { name = it }
+						}
+						closure.resolveStrategy = Closure.DELEGATE_FIRST
+						
+						closure.call()
+						
+						output = "Hello $name"
+					}
+				}
+			}
+		}
+		
+		when:
+		Task task = FlowDSL.createFlow {
+			plugins { register registry.create('testPlugin') }
+			input { 'candy' }
+			testPlugin.doStuff {
+				name "andy$input"
+			}
+			
+		}
+		
+		task.call()
+		
+		then:
+		'Hello andycandy' == task.output
 	}
 	
 	interface AnyClass {

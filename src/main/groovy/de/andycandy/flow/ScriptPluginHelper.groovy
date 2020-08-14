@@ -9,6 +9,7 @@ import groovy.transform.NamedParam
 import groovy.transform.NamedParams
 import groovy.transform.TupleConstructor
 
+@TupleConstructor
 class ScriptPluginHelper {
 	
 	PluginRegistry pluginRegistry
@@ -29,6 +30,10 @@ class ScriptPluginHelper {
 		}
 	}
 	
+	Task createTask(@DelegatesTo(value=Task, strategy=Closure.DELEGATE_FIRST)Closure closure) {
+		return new ScriptTask(closure)
+	}
+	
 	Object createDynamic(@DelegatesTo(value = DynamicCreatorDelegate, strategy=Closure.DELEGATE_FIRST) Closure closure) {
 		return DynamicCreator.createDynamic(closure)
 	}
@@ -47,6 +52,22 @@ class PassingTask extends AutoCleanTask {
 }
 
 @TupleConstructor
+class ScriptTask extends AutoCleanTask {
+
+	Closure closure
+	
+	@Override
+	public void callWithClean() {
+		
+		closure.delegate = this
+		closure.resolveStrategy = Closure.DELEGATE_FIRST
+		
+		closure()
+	}
+}
+
+
+@TupleConstructor
 class DelegateHelper {
 	
 	private Object delegateTarget
@@ -58,7 +79,6 @@ class DelegateHelper {
 	}
 }
 
-@TupleConstructor
 @Protect(classes = [DynamicCreatorDelegate])
 class DynamicCreator implements DynamicCreatorDelegate {
 

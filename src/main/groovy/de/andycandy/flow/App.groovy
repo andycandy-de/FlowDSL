@@ -84,8 +84,7 @@ class App implements Callable<Integer> {
 			return
 		}
 		
-		ScriptPluginHelper scriptPluginHelper = new ScriptPluginHelper()
-		scriptPluginHelper.pluginRegistry = pluginRegistry
+		ScriptPluginHelper scriptPluginHelper = new ScriptPluginHelper(pluginRegistry)
 		
 		ImportCustomizer importCustomizer = new ImportCustomizer()
 		importCustomizer.addStaticImport('de.andycandy.flow.FlowDSL', 'createFlow')
